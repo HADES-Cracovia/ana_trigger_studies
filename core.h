@@ -52,10 +52,30 @@
 
 struct AnaParameters
 {
-    TString outfile;
-    int events;
-    float beam_momentum;
-    bool sim;
+  TString outfile, config;
+  int events;
+  float beam_momentum;
+  bool sim;
+};
+
+struct GoodTrack{
+  int pid;
+  int track_id;
+  bool req;
+  bool found;
+  std::vector<int> search_path;
+  string search_str;
+  void print(int idx = -1)
+  {
+    printf("%2d  pid=%2d  req=%d  found=%d  ss=%s  id_track=%d\n",
+		 idx, pid, req, found, search_str.c_str(), track_id);
+  }
+};
+
+struct TrackInfo{
+  int pid;
+  int parent_id;
+  int track_id;
 };
 
 Int_t core(HLoop * loop, const AnaParameters & anapars);

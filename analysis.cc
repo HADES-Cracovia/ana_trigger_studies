@@ -25,6 +25,7 @@ int main(int argc, char **argv)
 
     int c;
     long int events = -1;
+    TString config = "";
     TString output = "output.root";
     float beam_momentum = 690.;
 
@@ -44,6 +45,7 @@ int main(int argc, char **argv)
 //            {"delete",  required_argument, 0, 'd'},
 //            {"create",  required_argument, 0, 'c'},
 //            {"file",    required_argument, 0, 'f'},
+	    {"config",    required_argument,    0,    'c'},
             {"output",    required_argument,    0,    'o'},
             {"events",    required_argument,    0,    'e'},
             {"mom",        required_argument,    0,    'm'},
@@ -80,7 +82,7 @@ int main(int argc, char **argv)
                 break;
 
             case 'c':
-                printf ("option -c with value `%s'\n", optarg);
+	        config = optarg;
                 break;
 
             case 'd':
@@ -140,6 +142,7 @@ int main(int argc, char **argv)
     }
 
     AnaParameters anapars;
+    anapars.config = config;
     anapars.outfile = output;
     anapars.events = events;
     anapars.beam_momentum = beam_momentum;

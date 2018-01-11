@@ -9,6 +9,8 @@
 
 #include "TH2I.h"
 #include "TCanvas.h"
+#include "fstream"
+#include "iostream"
 
 #define PR(x) std::cout << "++DEBUG: " << #x << " = |" << x << "| (" << __FILE__ << ", " << __LINE__ << ")\n";
 
@@ -20,6 +22,41 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     {                                                    // reading file structure
         std::cerr << "READBACK: ERROR : cannot read input !" << std::endl;
         std::exit(EXIT_FAILURE);
+    }
+
+    ifstream ifs;
+    std::vector<GoodTrack> goodTracks;
+    if(anapars.config.Length()>0){
+      ifs.open(anapars.config.Data(), std::fstream::in);
+      if(!ifs.is_open()){
+	std::cerr << "Cannot open config file." << endl;
+	std::exit(1);
+      }
+      string path;
+      int pid;
+      TString path2;
+
+      while(true){
+	ifs >> pid >> path;
+	if(ifs.eof()) break;
+	path2 = path;
+	TObjArray *arr = path2.Tokenize(":");
+
+	GoodTrack gd;
+	gd.pid = abs(pid);
+	gd.req = pid < 0 ? false : true;
+	gd.found = false;
+	gd.track_id = -1;
+	gd.search_str = path;
+
+	int num = arr -> GetEntries();
+	for(int i = 0; i < num; i++){
+	  TObjString * s = (TObjString *)arr->At(i);
+	  int a = s->GetString().Atoi();
+	  gd.search_path.push_back(a);
+	}
+	goodTracks.push_back(gd);
+      }
     }
 
     TStopwatch timer;
@@ -98,13 +135,46 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         Int_t cnt_h = 0;
         Int_t cnt_f = 0;
 
+	std::vector<TrackInfo> trackInf;
+	const int gdnum = goodTracks.size();
+	
         printf("Event %d\n", i);
         for (int j = 0; j < tracks_num; ++j)
         {
             HGeantKine * pKine = (HGeantKine *)fCatGeantKine->getObject(j);
             if (!pKine)
                 continue;
+	    
+	    TrackInfo ti;
+	    ti.pid = pKine->getID();
+	    ti.track_id = j;
+	    ti.parent_id = pKine->getParentTrack()-1;
+	    trackInf.push_back(ti);
+	    
+	    if(pKine->getID() == 1)
+	      continue;
 
+	    for(int k = 0; k < gdnum; k++){
+	      GoodTrack gd = goodTracks[k];
+	      //gd.print(k);
+	      if(gd.found) continue;
+	      if(gd.pid != ti.pid) continue;
+	      TrackInfo t1 = ti;
+	      for(int l = 0; l < gd.search_path.size(); l++){
+		printf("%d    %d\n", t1.parent_id, gd.search_path[l]);
+		if(t1.parent_id == gd.search_path[l]){
+		  if(t1.parent_id == -1){
+		    gd.found = true;
+		    gd.track_id = j;
+		    goodTracks[k]= gd;
+		  }else{
+		    t1 = trackInf[t1.parent_id];
+		  }
+		}else break;
+	      }
+	      if (gd.found) break;
+	    }
+	    
             Int_t m0 = 0, m1 = 0, m2 = 0, m3 = 0, s0 = 0, s1 = 0, str = 0, rpc = 0;
 
             pKine->getNHitsDecayBit(m0, m1, m2, m3, s0, s1);
@@ -162,6 +232,11 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         h_hit_mult_hades_fwdet->Fill(cnt_h, cnt_f);
 
         printf("\n");
+
+	for(int j = 0; j < gdnum; j++){
+	  GoodTrack gd = goodTracks[j];
+	  gd.print(j);
+	}
     } // end eventloop
 
     h_tr_mult->Write();
