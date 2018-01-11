@@ -45,8 +45,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 	GoodTrack gd;
 	gd.pid = abs(pid);
 	gd.req = pid < 0 ? false : true;
-	gd.found = false;
-	gd.track_id = -1;
+	gd.reset();
 	gd.search_str = path;
 
 	int num = arr -> GetEntries();
@@ -137,7 +136,10 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
 	std::vector<TrackInfo> trackInf;
 	const int gdnum = goodTracks.size();
-	
+
+	for (int j = 0; j < gdnum; ++j)
+	  goodTracks[j].reset();
+
         printf("Event %d\n", i);
         for (int j = 0; j < tracks_num; ++j)
         {
@@ -167,10 +169,22 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 		    gd.found = true;
 		    gd.track_id = j;
 		    goodTracks[k]= gd;
-		  }else{
+		  }
+		  else{
 		    t1 = trackInf[t1.parent_id];
 		  }
-		}else break;
+		}
+		else if (t1.parent_id == -1)
+		{
+		  break;
+		}
+		else
+		{
+		  if (trackInf[t1.parent_id].pid == gd.search_path[l])
+		    t1 = trackInf[t1.parent_id];
+		  else
+		    break;
+		}
 	      }
 	      if (gd.found) break;
 	    }
@@ -237,6 +251,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 	  GoodTrack gd = goodTracks[j];
 	  gd.print(j);
 	}
+	printf("\n\n\n\n");
     } // end eventloop
 
     h_tr_mult->Write();

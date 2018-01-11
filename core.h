@@ -65,10 +65,15 @@ struct GoodTrack{
   bool found;
   std::vector<int> search_path;
   string search_str;
-  void print(int idx = -1)
+  void print(int idx = -1) const
   {
     printf("%2d  pid=%2d  req=%d  found=%d  ss=%s  id_track=%d\n",
 		 idx, pid, req, found, search_str.c_str(), track_id);
+  }
+  void reset()
+  {
+    track_id = -1;
+    found = false;
   }
 };
 
