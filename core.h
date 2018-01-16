@@ -86,4 +86,8 @@ struct TrackInfo{
 
 Int_t core(HLoop * loop, const AnaParameters & anapars);
 
+typedef std::vector<GoodTrack> GTVector;
+
+Bool_t is_good_event(const GTVector & gtv);
+
 #endif /* FWDET_TESTS_H */
