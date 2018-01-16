@@ -64,7 +64,10 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     }
 
     int n_found, n_found_hf, n_req, n_nreq, n_all;
-    float n_nra, n_fa, h_pim, f_pim, h_p, f_p;
+
+    //    float n_nra, n_fa, h_pim, f_pim, h_p, f_p;
+    int n_h_p, n_h_p_acc, n_f_p, n_f_p_acc, n_h_pim, n_h_pim_acc, n_f_pim, n_f_pim_acc;
+    n_h_p = 0; n_h_p_acc = 0; n_f_p = 0; n_f_p_acc = 0; n_h_pim = 0; n_h_pim_acc = 0; n_f_pim = 0; n_f_pim_acc = 0;
 
     TStopwatch timer;
     timer.Reset();
@@ -120,29 +123,29 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     TH2 * h_hit_mult_hades_fwdet = new TH2I("h_hit_mult_hades_fwdet", "Charged in Hades/FwDet mult;multiplicity;multiplicity", 10, 0, 10, 10, 0, 10);
 
     //only good/accepted events
-    TH1I * h_tr_mult_acc = new TH1I("h_tr_mult", "Tracks mult;multiplicity", 1000, 0, 1000);
-    TH1I * h_hit_s0_acc = new TH1I("h_hit_s0", "Tracks mult;multiplicity", 2, 0, 2);
-    TH1I * h_hit_s1_acc = new TH1I("h_hit_s1", "Tracks mult;multiplicity", 2, 0, 2);
-    TH1I * h_hit_s01_acc = new TH1I("h_hit_s01", "Tracks mult;multiplicity", 3, 0, 3);
-    TH1I * h_hit_str_acc = new TH1I("h_hit_str", "Tracks mult;multiplicity", 20, 0, 20);
-    TH1I * h_hit_rpc_acc = new TH1I("h_hit_rpc", "Tracks mult;multiplicity", 10, 0, 10);
-    TH2I * h_hit_s01_str_acc = new TH2I("h_hit_s01_str", "Tracks mult;multiplicity", 3, 0, 3, 20, 0, 20);
+    TH1I * h_tr_mult_acc = new TH1I("h_tr_mult_acc", "Tracks mult_acc;multiplicity", 1000, 0, 1000);
+    TH1I * h_hit_s0_acc = new TH1I("h_hit_s0_acc", "Tracks mult_acc;multiplicity", 2, 0, 2);
+    TH1I * h_hit_s1_acc = new TH1I("h_hit_s1_acc", "Tracks mult_acc;multiplicity", 2, 0, 2);
+    TH1I * h_hit_s01_acc = new TH1I("h_hit_s01_acc", "Tracks mult_acc;multiplicity", 3, 0, 3);
+    TH1I * h_hit_str_acc = new TH1I("h_hit_str_acc", "Tracks mult_acc;multiplicity", 20, 0, 20);
+    TH1I * h_hit_rpc_acc = new TH1I("h_hit_rpc_acc", "Tracks mult_acc;multiplicity", 10, 0, 10);
+    TH2I * h_hit_s01_str_acc = new TH2I("h_hit_s01_str_acc", "Tracks mult_acc;multiplicity", 3, 0, 3, 20, 0, 20);
 
-    TH1 * h_hit_mult_hades_p_acc = new TH1I("h_hit_mult_hades_p", "Protons in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_hades_pip_acc = new TH1I("h_hit_mult_hades_pip", "pi-plus in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_hades_pim_acc = new TH1I("h_hit_mult_hades_pim", "pi-minus in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_hades_Kp_acc = new TH1I("h_hit_mult_hades_Kp", "K-plus in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_hades_Km_acc = new TH1I("h_hit_mult_hades_Km", "K-minus in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_hades_acc = new TH1I("h_hit_mult_hades", "Charged in Hades mult;multiplicity", 10, 0, 10);
+    TH1 * h_hit_mult_hades_p_acc = new TH1I("h_hit_mult_hades_p_acc", "Protons in Hades mult_acc;multiplicity", 10, 0, 10);
+    TH1 * h_hit_mult_hades_pip_acc = new TH1I("h_hit_mult_hades_pip_acc", "pi-plus in Hades mult_acc;multiplicity", 10, 0, 10);
+    TH1 * h_hit_mult_hades_pim_acc = new TH1I("h_hit_mult_hades_pim_acc", "pi-minus in Hades mult_acc;multiplicity", 10, 0, 10);
+    TH1 * h_hit_mult_hades_Kp_acc = new TH1I("h_hit_mult_hades_Kp_acc", "K-plus in Hades mult_acc;multiplicity", 10, 0, 10);
+    TH1 * h_hit_mult_hades_Km_acc = new TH1I("h_hit_mult_hades_Km_acc", "K-minus in Hades mult_acc;multiplicity", 10, 0, 10);
+    TH1 * h_hit_mult_hades_acc = new TH1I("h_hit_mult_hades_acc", "Charged in Hades mult_acc;multiplicity", 10, 0, 10);
 
-    TH1 * h_hit_mult_fwdet_p_acc = new TH1I("h_hit_mult_fwdet_p", "Protons in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_fwdet_pip_acc = new TH1I("h_hit_mult_fwdet_pip", "pi-plus in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_fwdet_pim_acc = new TH1I("h_hit_mult_fwdet_pim", "pi-minus in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_fwdet_Kp_acc = new TH1I("h_hit_mult_fwdet_Kp", "K-plus in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_fwdet_Km_acc = new TH1I("h_hit_mult_fwdet_Km", "K-minus in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_fwdet_acc = new TH1I("h_hit_mult_fwdet", "Charged in Hades mult;multiplicity", 10, 0, 10);
+    TH1 * h_hit_mult_fwdet_p_acc = new TH1I("h_hit_mult_fwdet_p_acc", "Protons in FT mult_acc;multiplicity", 10, 0, 10);
+    TH1 * h_hit_mult_fwdet_pip_acc = new TH1I("h_hit_mult_fwdet_pip_acc", "pi-plus in FT mult_acc;multiplicity", 10, 0, 10);
+    TH1 * h_hit_mult_fwdet_pim_acc = new TH1I("h_hit_mult_fwdet_pim_acc", "pi-minus in FT mult_acc;multiplicity", 10, 0, 10);
+    TH1 * h_hit_mult_fwdet_Kp_acc = new TH1I("h_hit_mult_fwdet_Kp_acc", "K-plus in FT mult_acc;multiplicity", 10, 0, 10);
+    TH1 * h_hit_mult_fwdet_Km_acc = new TH1I("h_hit_mult_fwdet_Km_acc", "K-minus in FT mult_acc;multiplicity", 10, 0, 10);
+    TH1 * h_hit_mult_fwdet_acc = new TH1I("h_hit_mult_fwdet_acc", "Charged in FT mult_acc;multiplicity", 10, 0, 10);
 
-    TH2 * h_hit_mult_hades_fwdet_acc = new TH2I("h_hit_mult_hades_fwdet", "Charged in Hades/FwDet mult;multiplicity;multiplicity", 10, 0, 10, 10, 0, 10);
+    TH2 * h_hit_mult_hades_fwdet_acc = new TH2I("h_hit_mult_hades_fwdet_acc", "Charged in Hades/FwDet mult_acc;multiplicity;multiplicity", 10, 0, 10, 10, 0, 10);
 
 
     TH1I * h_gt_p_theta = new TH1I("h_gt_p_theta", ";Theta / rad;counts", 150, 0, 1.5);
@@ -175,20 +178,12 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         Int_t cnt_h = 0, cnt_h_acc = 0;
         Int_t cnt_f = 0, cnt_f_acc = 0;
 
-        h_pim = 0;
-        f_pim = 0;
-        h_p = 0;
-        f_p = 0;
-
         n_found = 0;
         n_found_hf = 0;
         n_req = 0;
         n_nreq = 0;
-        n_nra = 0;
-        n_fa = 0;
 
         std::vector<TrackInfo> trackInf;
-        std::vector<GoodTrack> allTracks;
 
         const int gdnum = goodTracks.size();
 
@@ -196,6 +191,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             goodTracks[j].reset();
 
         if (anapars.verbose_flag) printf("Event %d\n", i);
+
         for (int j = 0; j < tracks_num; ++j)
         {
             HGeantKine * pKine = (HGeantKine *)fCatGeantKine -> getObject(j);
@@ -256,8 +252,6 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                     break;
             }
 
-            allTracks.push_back(at);
-
             //printf("j=%d: allTracks: pid=%d, track_id=%d, req=%d, found=%d\n", j, allTracks.back().pid, allTracks.back().track_id, allTracks.back().req, allTracks.back().found);
             // printf("at: pid=%d, track_id=%d, req=%d, found=%d\n", at.pid, at.track_id, at.req, at.found);
 
@@ -267,44 +261,50 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             pKine->getNHitsFWDecayBit(str, rpc);
 
             //fill histos for good events
-            if (allTracks.back().found)
+            for (int k = 0; k < gdnum; k++)
             {
-                h_hit_s0_acc -> Fill(s0);
-                h_hit_s1_acc -> Fill(s1);
-                h_hit_s01_acc -> Fill(s0+s1);
-                h_hit_str_acc -> Fill(str);
-                h_hit_rpc_acc -> Fill(rpc);
-                h_hit_s01_str_acc -> Fill(s0+s1, str);
-                h_tr_mult_acc -> Fill(tracks_num);
-
-                if (s0 or s1)
+                if (j == goodTracks[k].track_id)
                 {
-                    Int_t pid = pKine -> getID();
-                    switch (pid)
+                    if (goodTracks[k].found)
                     {
-                        case 8: ++ cnt_h_pip_acc; ++cnt_h_acc; break;       // pip
-                        case 9: ++ cnt_h_pim_acc; ++cnt_h_acc; break;       // pim
-                        case 11: ++ cnt_h_Kp_acc; ++cnt_h_acc; break;       // Kp
-                        case 12: ++ cnt_h_Km_acc; ++cnt_h_acc; break;       // Km
-                        case 14: ++ cnt_h_p_acc; ++cnt_h_acc; break;        // p
+                        h_hit_s0_acc -> Fill(s0);
+                        h_hit_s1_acc -> Fill(s1);
+                        h_hit_s01_acc -> Fill(s0+s1);
+                        h_hit_str_acc -> Fill(str);
+                        h_hit_rpc_acc -> Fill(rpc);
+                        h_hit_s01_str_acc -> Fill(s0+s1, str);
+                        h_tr_mult_acc -> Fill(tracks_num);
+
+                        if (s0 or s1)
+                        {
+                            Int_t pid = pKine -> getID();
+                            switch (pid)
+                            {
+                                case 8: ++ cnt_h_pip_acc; ++cnt_h_acc; break;       // pip
+                                case 9: ++ cnt_h_pim_acc; ++cnt_h_acc; break;       // pim
+                                case 11: ++ cnt_h_Kp_acc; ++cnt_h_acc; break;       // Kp
+                                case 12: ++ cnt_h_Km_acc; ++cnt_h_acc; break;       // Km
+                                case 14: ++ cnt_h_p_acc; ++cnt_h_acc; break;        // p
+                            }
+                        }
+
+                        if (str and rpc)
+                        {
+                            Int_t pid = pKine -> getID();
+                            switch (pid)
+                            {
+                                case 8: ++ cnt_f_pip_acc; ++cnt_f_acc; break;       // pip
+                                case 9: ++ cnt_f_pim_acc; ++cnt_f_acc; break;       // pim
+                                case 11: ++ cnt_f_Kp_acc; ++cnt_f_acc; break;       // Kp
+                                case 12: ++ cnt_f_Km_acc; ++cnt_f_acc; break;       // Km
+                                case 14: ++ cnt_f_p_acc; ++cnt_f_acc; break;        // p
+                            }
+                        }
+                        if (goodTracks[k].req) n_req++;
+                        if (!goodTracks[k].req) n_nreq++;
+                        n_found++;
                     }
                 }
-
-                if (str and rpc)
-                {
-                    Int_t pid = pKine -> getID();
-                    switch (pid)
-                    {
-                        case 8: ++ cnt_f_pip_acc; ++cnt_f_acc; break;       // pip
-                        case 9: ++ cnt_f_pim_acc; ++cnt_f_acc; break;       // pim
-                        case 11: ++ cnt_f_Kp_acc; ++cnt_f_acc; break;       // Kp
-                        case 12: ++ cnt_f_Km_acc; ++cnt_f_acc; break;       // Km
-                        case 14: ++ cnt_f_p_acc; ++cnt_f_acc; break;        // p
-                    }
-                }
-                if (allTracks.back().req) n_req++;
-                if (!allTracks.back().req) n_nreq++;
-                n_found++;
             }
 
             //fill histos for all events
@@ -342,7 +342,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             }
 
             if (anapars.verbose_flag)
-                printf("  [%03d/%0d] pid=%2d parent=%d  s0=%d s1=%d  f=%d  rpc=%d found=%d\n", j, tracks_num, pKine->getID(), pKine->getParentTrack()-1, s0, s1, str, rpc, allTracks.back().found);
+                printf("  [%03d/%0d] pid=%2d parent=%d  s0=%d s1=%d  f=%d  rpc=%d\n", j, tracks_num, pKine->getID(), pKine->getParentTrack()-1, s0, s1, str, rpc);
         }
 
         //fill histos for good events
@@ -383,67 +383,34 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         if (anapars.verbose_flag)
             printf("\n");
 
-        n_found_hf =  cnt_h_acc + cnt_f_acc;
-        n_fa = n_found/n_all;
-        n_nra = n_nreq/n_all;
+        //all counts
+        n_h_p += cnt_h_p;
+        n_h_p_acc += cnt_h_p_acc;
+        n_f_p += cnt_f_p;
+        n_f_p_acc += cnt_f_p_acc;
+        n_h_pim += cnt_h_pim;
+        n_h_pim_acc += cnt_h_pim_acc;
+
+        //counts in event
         if (anapars.verbose_flag)
-            printf("n_found=%d, n_found_hf=%d, n_req=%d, n_nreq=%d, n_all=%d,\n n_found/n_all=%f, n_nreq/n_all=%f\n", n_found, n_found_hf, n_req, n_nreq, n_all, n_fa, n_nra);
+        {
+            printf("h_pi_good=%d, h_pi_all=%d\n", cnt_h_pim_acc, cnt_h_pim);
+            printf("f_pi_good=%d, f_pi_all=%d\n", cnt_f_pim_acc, cnt_f_pim);
+            printf("h_p_good=%d,  h_p_all=%d\n", cnt_h_p_acc, cnt_h_p);
+            printf("f_p_good=%d,  f_p_all=%d\n", cnt_f_p_acc, cnt_f_p);
 
-        if (cnt_h_pim!=0)
-        {
-            h_pim = cnt_h_pim_acc/cnt_h_pim;
-            if (anapars.verbose_flag)
-                printf("h_pi_good=%d, h_pi_all=%d, h_pi=%f\n", cnt_h_pim_acc, cnt_h_pim, h_pim);
-        }
-        else
-        {
-            if (anapars.verbose_flag)
-                printf("h_pi_good=%d, h_pi_all=%d\n", cnt_h_pim_acc, cnt_h_pim);
-        }
+            for(int j = 0; j < gdnum; j++)
+            {
+                GoodTrack gd = goodTracks[j];
+                gd.print(j);
+            }
 
-        if (cnt_f_pim!=0)
-        {
-            f_pim = cnt_f_pim_acc/cnt_f_pim;
-            if (anapars.verbose_flag)
-                printf("f_pi_good=%d, f_pi_all=%d, f_pi=%f\n", cnt_f_pim_acc, cnt_f_pim, f_pim);
-        }
-        else
-        {
-            if (anapars.verbose_flag)
-                printf("f_pi_good=%d, f_pi_all=%d\n", cnt_f_pim_acc, cnt_f_pim);
-        }
-
-        if (cnt_h_p!=0)
-        {
-            h_p = cnt_h_p_acc/cnt_h_p;
-            if (anapars.verbose_flag)
-                printf("h_p_good=%d, h_p_all=%d, h_p=%f\n", cnt_h_p_acc, cnt_h_p, h_p);
-        }
-        else
-        {
-            if (anapars.verbose_flag)
-                printf("h_p_good=%d, h_p_all=%d\n", cnt_h_p_acc, cnt_h_p);
-        }
-
-        if (cnt_f_p!=0){
-            f_p = cnt_f_p_acc/cnt_f_p;
-            if (anapars.verbose_flag)
-                printf("f_p_good=%d, f_p_all=%d, f_p=%f\n", cnt_f_p_acc, cnt_f_p, f_p);
-        }
-        else
-        {
-            if (anapars.verbose_flag)
-                printf("f_p_good=%d, f_p_all=%d\n", cnt_f_p_acc, cnt_f_p);
-        }
-
-        for(int j = 0; j < gdnum; j++)
-        {
-            GoodTrack gd = goodTracks[j];
-            gd.print(j);
-        }
-        if (anapars.verbose_flag)
             printf("\n\n\n\n");
+        }
     } // end eventloop
+
+    if (anapars.verbose_flag)
+        printf("n_h_p=%d, n_h_p_good=%d\n n_f_p=%d, n_f_p_good=%d\n n_h_pim=%d, n_h_pim_good=%d\n", n_h_p, n_h_p_acc, n_f_p, n_f_p_acc, n_h_pim, n_h_pim_acc);
 
     h_tr_mult->Write();
     h_hit_s0->Write();
