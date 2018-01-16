@@ -144,7 +144,6 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
     TH2 * h_hit_mult_hades_fwdet_acc = new TH2I("h_hit_mult_hades_fwdet", "Charged in Hades/FwDet mult;multiplicity;multiplicity", 10, 0, 10, 10, 0, 10);
 
-
     for (Int_t i = 0; i < entries; i++)                    // event loop
     {
         /*Int_t nbytes =*/  loop -> nextEvent(i);         // get next event. categories will be cleared before
@@ -189,7 +188,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         for (int j = 0; j < gdnum; ++j)
             goodTracks[j].reset();
 
-        printf("Event %d\n", i);
+        if (anapars.verbose_flag) printf("Event %d\n", i);
         for (int j = 0; j < tracks_num; ++j)
         {
             HGeantKine * pKine = (HGeantKine *)fCatGeantKine -> getObject(j);
@@ -222,7 +221,6 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                 TrackInfo t1 = ti;
                 for(int l = 0; l < gt.search_path.size(); l++)
                 {
-                    printf("%d    %d\n", t1.parent_id, gt.search_path[l]);
                     if (t1.parent_id == gt.search_path[l])
                     {
                         if (t1.parent_id == -1)
@@ -336,7 +334,8 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                 }
             }
 
-            printf("  [%03d/%0d] pid=%2d parent=%d  s0=%d s1=%d  f=%d  rpc=%d found=%d\n", j, tracks_num, pKine->getID(), pKine->getParentTrack()-1, s0, s1, str, rpc, allTracks.back().found);
+            if (anapars.verbose_flag)
+                printf("  [%03d/%0d] pid=%2d parent=%d  s0=%d s1=%d  f=%d  rpc=%d found=%d\n", j, tracks_num, pKine->getID(), pKine->getParentTrack()-1, s0, s1, str, rpc, allTracks.back().found);
         }
 
         //fill histos for good events
@@ -374,50 +373,69 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
         h_hit_mult_hades_fwdet -> Fill(cnt_h, cnt_f);
 
-        printf("\n");
+        if (anapars.verbose_flag)
+            printf("\n");
 
         n_found_hf =  cnt_h_acc + cnt_f_acc;
         n_fa = n_found/n_all;
         n_nra = n_nreq/n_all;
-        printf("n_found=%d, n_found_hf=%d, n_req=%d, n_nreq=%d, n_all=%d,\n n_found/n_all=%f, n_nreq/n_all=%f\n", n_found, n_found_hf, n_req, n_nreq, n_all, n_fa, n_nra);
+        if (anapars.verbose_flag)
+            printf("n_found=%d, n_found_hf=%d, n_req=%d, n_nreq=%d, n_all=%d,\n n_found/n_all=%f, n_nreq/n_all=%f\n", n_found, n_found_hf, n_req, n_nreq, n_all, n_fa, n_nra);
 
         if (cnt_h_pim!=0)
         {
             h_pim = cnt_h_pim_acc/cnt_h_pim;
-            printf("h_pi_good=%d, h_pi_all=%d, h_pi=%f\n", cnt_h_pim_acc, cnt_h_pim, h_pim);
+            if (anapars.verbose_flag)
+                printf("h_pi_good=%d, h_pi_all=%d, h_pi=%f\n", cnt_h_pim_acc, cnt_h_pim, h_pim);
         }
         else
-            printf("h_pi_good=%d, h_pi_all=%d\n", cnt_h_pim_acc, cnt_h_pim);
+        {
+            if (anapars.verbose_flag)
+                printf("h_pi_good=%d, h_pi_all=%d\n", cnt_h_pim_acc, cnt_h_pim);
+        }
 
         if (cnt_f_pim!=0)
         {
             f_pim = cnt_f_pim_acc/cnt_f_pim;
-            printf("f_pi_good=%d, f_pi_all=%d, f_pi=%f\n", cnt_f_pim_acc, cnt_f_pim, f_pim);
+            if (anapars.verbose_flag)
+                printf("f_pi_good=%d, f_pi_all=%d, f_pi=%f\n", cnt_f_pim_acc, cnt_f_pim, f_pim);
         }
         else
-            printf("f_pi_good=%d, f_pi_all=%d\n", cnt_f_pim_acc, cnt_f_pim);
+        {
+            if (anapars.verbose_flag)
+                printf("f_pi_good=%d, f_pi_all=%d\n", cnt_f_pim_acc, cnt_f_pim);
+        }
 
         if (cnt_h_p!=0)
         {
             h_p = cnt_h_p_acc/cnt_h_p;
-            printf("h_p_good=%d, h_p_all=%d, h_p=%f\n", cnt_h_p_acc, cnt_h_p, h_p);
+            if (anapars.verbose_flag)
+                printf("h_p_good=%d, h_p_all=%d, h_p=%f\n", cnt_h_p_acc, cnt_h_p, h_p);
         }
         else
-            printf("h_p_good=%d, h_p_all=%d\n", cnt_h_p_acc, cnt_h_p);
+        {
+            if (anapars.verbose_flag)
+                printf("h_p_good=%d, h_p_all=%d\n", cnt_h_p_acc, cnt_h_p);
+        }
 
         if (cnt_f_p!=0){
             f_p = cnt_f_p_acc/cnt_f_p;
-            printf("f_p_good=%d, f_p_all=%d, f_p=%f\n", cnt_f_p_acc, cnt_f_p, f_p);
+            if (anapars.verbose_flag)
+                printf("f_p_good=%d, f_p_all=%d, f_p=%f\n", cnt_f_p_acc, cnt_f_p, f_p);
         }
         else
-            printf("f_p_good=%d, f_p_all=%d\n", cnt_f_p_acc, cnt_f_p);
+        {
+            if (anapars.verbose_flag)
+                printf("f_p_good=%d, f_p_all=%d\n", cnt_f_p_acc, cnt_f_p);
+        }
 
         for(int j = 0; j < gdnum; j++)
         {
             GoodTrack gd = goodTracks[j];
             gd.print(j);
         }
-        printf("\n\n\n\n");
+        if (anapars.verbose_flag)
+            printf("\n\n\n\n");
     } // end eventloop
 
     h_tr_mult->Write();

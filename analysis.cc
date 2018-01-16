@@ -142,6 +142,7 @@ int main(int argc, char **argv)
     }
 
     AnaParameters anapars;
+    anapars.verbose_flag = verbose_flag;
     anapars.config = config;
     anapars.outfile = output;
     anapars.events = events;
