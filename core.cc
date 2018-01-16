@@ -209,15 +209,12 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             ti.parent_id = pKine -> getParentTrack()-1;
             trackInf.push_back(ti);
 
-            GoodTrack at;
-            at.reset();
-            at.pid = pKine -> getID();
-            at.track_id = j;
-            at.req = false;
+            GoodTrack gt;
+            gt.found = false;
 
             for(int k = 0; k < gtnum; k++)
             {
-                GoodTrack gt = goodTracks[k];
+                gt = goodTracks[k];
                 gt.track_id = j;
                 if (gt.found) continue;
                 if (gt.pid != ti.pid) continue;   //search all p,pi-,K+
@@ -229,8 +226,6 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                         if (t1.parent_id == -1)
                         {
                             gt.found = true;
-                            at.found = true;
-                            at.req = gt.req;
                             goodTracks[k] = gt;
                         }
                         else
@@ -255,60 +250,58 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             //printf("j=%d: allTracks: pid=%d, track_id=%d, req=%d, found=%d\n", j, allTracks.back().pid, allTracks.back().track_id, allTracks.back().req, allTracks.back().found);
             // printf("at: pid=%d, track_id=%d, req=%d, found=%d\n", at.pid, at.track_id, at.req, at.found);
 
+            if (!gt.found)
+                continue;
+
             Int_t m0 = 0, m1 = 0, m2 = 0, m3 = 0, s0 = 0, s1 = 0, str = 0, rpc = 0;
 
             pKine->getNHitsDecayBit(m0, m1, m2, m3, s0, s1);
             pKine->getNHitsFWDecayBit(str, rpc);
 
             //fill histos for good events
-            for (int k = 0; k < gtnum; k++)
+            if (gt.found)
             {
-                if (j == goodTracks[k].track_id)
+                h_hit_s0_acc -> Fill(s0);
+                h_hit_s1_acc -> Fill(s1);
+                h_hit_s01_acc -> Fill(s0+s1);
+                h_hit_str_acc -> Fill(str);
+                h_hit_rpc_acc -> Fill(rpc);
+                h_hit_s01_str_acc -> Fill(s0+s1, str);
+                h_tr_mult_acc -> Fill(tracks_num);
+
+                if (s0 or s1)
                 {
-                    if (goodTracks[k].found)
+                    Int_t pid = pKine -> getID();
+                    switch (pid)
                     {
-                        h_hit_s0_acc -> Fill(s0);
-                        h_hit_s1_acc -> Fill(s1);
-                        h_hit_s01_acc -> Fill(s0+s1);
-                        h_hit_str_acc -> Fill(str);
-                        h_hit_rpc_acc -> Fill(rpc);
-                        h_hit_s01_str_acc -> Fill(s0+s1, str);
-                        h_tr_mult_acc -> Fill(tracks_num);
-
-                        if (s0 or s1)
-                        {
-                            Int_t pid = pKine -> getID();
-                            switch (pid)
-                            {
-                                case 8: ++ cnt_h_pip_acc; ++cnt_h_acc; break;       // pip
-                                case 9: ++ cnt_h_pim_acc; ++cnt_h_acc; break;       // pim
-                                case 11: ++ cnt_h_Kp_acc; ++cnt_h_acc; break;       // Kp
-                                case 12: ++ cnt_h_Km_acc; ++cnt_h_acc; break;       // Km
-                                case 14: ++ cnt_h_p_acc; ++cnt_h_acc; break;        // p
-                            }
-                        }
-
-                        if (str and rpc)
-                        {
-                            Int_t pid = pKine -> getID();
-                            switch (pid)
-                            {
-                                case 8: ++ cnt_f_pip_acc; ++cnt_f_acc; break;       // pip
-                                case 9: ++ cnt_f_pim_acc; ++cnt_f_acc; break;       // pim
-                                case 11: ++ cnt_f_Kp_acc; ++cnt_f_acc; break;       // Kp
-                                case 12: ++ cnt_f_Km_acc; ++cnt_f_acc; break;       // Km
-                                case 14: ++ cnt_f_p_acc; ++cnt_f_acc; break;        // p
-                            }
-                        }
-                        if (goodTracks[k].req) n_req++;
-                        if (!goodTracks[k].req) n_nreq++;
-                        n_found++;
+                        case 8: ++ cnt_h_pip_acc; ++cnt_h_acc; break;       // pip
+                        case 9: ++ cnt_h_pim_acc; ++cnt_h_acc; break;       // pim
+                        case 11: ++ cnt_h_Kp_acc; ++cnt_h_acc; break;       // Kp
+                        case 12: ++ cnt_h_Km_acc; ++cnt_h_acc; break;       // Km
+                        case 14: ++ cnt_h_p_acc; ++cnt_h_acc; break;        // p
                     }
                 }
+
+                if (str and rpc)
+                {
+                    Int_t pid = pKine -> getID();
+                    switch (pid)
+                    {
+                        case 8: ++ cnt_f_pip_acc; ++cnt_f_acc; break;       // pip
+                        case 9: ++ cnt_f_pim_acc; ++cnt_f_acc; break;       // pim
+                        case 11: ++ cnt_f_Kp_acc; ++cnt_f_acc; break;       // Kp
+                        case 12: ++ cnt_f_Km_acc; ++cnt_f_acc; break;       // Km
+                        case 14: ++ cnt_f_p_acc; ++cnt_f_acc; break;        // p
+                    }
+                }
+                if (gt.req) n_req++;
+                if (!gt.req) n_nreq++;
+                n_found++;
             }
 
             //fill histos for all events
             h_hit_s0 -> Fill(s0);
+
             h_hit_s1 -> Fill(s1);
             h_hit_s01 -> Fill(s0+s1);
             h_hit_str -> Fill(str);
