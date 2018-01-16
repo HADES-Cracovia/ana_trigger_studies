@@ -154,6 +154,8 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     TH1I * h_gt_pip_theta = new TH1I("h_gt_pip_theta", ";Theta / rad;counts", 150, 0, 1.5);
     TH1I * h_gt_pim_theta = new TH1I("h_gt_pim_theta", ";Theta / rad;counts", 150, 0, 1.5);
 
+    const int gtnum = goodTracks.size();
+
     for (Int_t i = 0; i < entries; i++)                    // event loop
     {
         /*Int_t nbytes =*/  loop -> nextEvent(i);         // get next event. categories will be cleared before
@@ -185,12 +187,10 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
         std::vector<TrackInfo> trackInf;
 
-        const int gdnum = goodTracks.size();
-
-        for (int j = 0; j < gdnum; ++j)
+        for (int j = 0; j < gtnum; ++j)
             goodTracks[j].reset();
 
-        if (anapars.verbose_flag) printf("Event %d\n", i);
+        if (anapars.verbose_flag) printf("Event %d (tracks=%d)\n", i, tracks_num);
 
         for (int j = 0; j < tracks_num; ++j)
         {
@@ -215,7 +215,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             at.track_id = j;
             at.req = false;
 
-            for(int k = 0; k < gdnum; k++)
+            for(int k = 0; k < gtnum; k++)
             {
                 GoodTrack gt = goodTracks[k];
                 gt.track_id = j;
@@ -261,7 +261,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             pKine->getNHitsFWDecayBit(str, rpc);
 
             //fill histos for good events
-            for (int k = 0; k < gdnum; k++)
+            for (int k = 0; k < gtnum; k++)
             {
                 if (j == goodTracks[k].track_id)
                 {
@@ -341,9 +341,11 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                 }
             }
 
-            if (anapars.verbose_flag)
-                printf("  [%03d/%0d] pid=%2d parent=%d  s0=%d s1=%d  f=%d  rpc=%d\n", j, tracks_num, pKine->getID(), pKine->getParentTrack()-1, s0, s1, str, rpc);
+//             if (anapars.verbose_flag)
+//                 printf("  [%03d/%0d] pid=%2d parent=%d  s0=%d s1=%d  f=%d  rpc=%d\n", j, tracks_num, pKine->getID(), pKine->getParentTrack()-1, s0, s1, str, rpc);
         }
+
+        Bool_t good_event = is_good_event(goodTracks);
 
         //fill histos for good events
         h_hit_mult_hades_p_acc -> Fill(cnt_h_p_acc);
@@ -361,7 +363,6 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         h_hit_mult_fwdet_acc -> Fill(cnt_f_acc);
 
         h_hit_mult_hades_fwdet_acc -> Fill(cnt_h_acc, cnt_f_acc);
-
 
         //foll histots for all events
         h_hit_mult_hades_p -> Fill(cnt_h_p);
@@ -399,13 +400,14 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             printf("h_p_good=%d,  h_p_all=%d\n", cnt_h_p_acc, cnt_h_p);
             printf("f_p_good=%d,  f_p_all=%d\n", cnt_f_p_acc, cnt_f_p);
 
-            for(int j = 0; j < gdnum; j++)
+            for(int j = 0; j < gtnum; j++)
             {
                 GoodTrack gd = goodTracks[j];
                 gd.print(j);
             }
+            printf(" Good event ? %s\n", good_event ? "yes" : "no");
 
-            printf("\n\n\n\n");
+            printf("\n********************************************************\n");
         }
     } // end eventloop
 
@@ -473,4 +475,15 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     timer.Print();
 
     return 0;
+}
+
+Bool_t is_good_event(const GTVector& gtv)
+{
+    for (auto x : gtv)
+    {
+        if (x.req)
+            if (!x.found)
+                return kFALSE;
+    }
+    return kTRUE;
 }
