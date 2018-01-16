@@ -53,7 +53,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             gd.search_str = path;
 
             int num = arr -> GetEntries();
-            for (int i = 0; i < num; i++)
+            for (int i = 0; i < num; ++i)
             {
                 TObjString * s = (TObjString *)arr -> At(i);
                 int a = s -> GetString().Atoi();
@@ -147,16 +147,30 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
     TH2 * h_hit_mult_hades_fwdet_acc = new TH2I("h_hit_mult_hades_fwdet_acc", "Charged in Hades/FwDet mult_acc;multiplicity;multiplicity", 10, 0, 10, 10, 0, 10);
 
+    // theta of good particles
+    TH1I * h_gt_p_theta = new TH1I("h_gt_p_theta", ";proton Theta / rad;counts", 360, 0, 180.0);
+    TH1I * h_gt_Kp_theta = new TH1I("h_gt_Kp_theta", ";K+ Theta / rad;counts", 360, 0, 180.0);
+    TH1I * h_gt_Km_theta = new TH1I("h_gt_Km_theta", ";K- Theta / rad;counts", 360, 0, 180.0);
+    TH1I * h_gt_pip_theta = new TH1I("h_gt_pip_theta", ";#{pi}+ Theta / rad;counts", 360, 0, 180.0);
+    TH1I * h_gt_pim_theta = new TH1I("h_gt_pim_theta", ";#{pi}- Theta / rad;counts", 360, 0, 180.0);
 
-    TH1I * h_gt_p_theta = new TH1I("h_gt_p_theta", ";Theta / rad;counts", 150, 0, 1.5);
-    TH1I * h_gt_Kp_theta = new TH1I("h_gt_Kp_theta", ";Theta / rad;counts", 150, 0, 1.5);
-    TH1I * h_gt_Km_theta = new TH1I("h_gt_Km_theta", ";Theta / rad;counts", 150, 0, 1.5);
-    TH1I * h_gt_pip_theta = new TH1I("h_gt_pip_theta", ";Theta / rad;counts", 150, 0, 1.5);
-    TH1I * h_gt_pim_theta = new TH1I("h_gt_pim_theta", ";Theta / rad;counts", 150, 0, 1.5);
+    // theta of good particles in acceptance
+    TH1I * h_gt_p_theta_acc = new TH1I("h_gt_p_theta_acc", ";proton Theta / rad;counts", 180, 0, 90.0);
+    TH1I * h_gt_Kp_theta_acc = new TH1I("h_gt_Kp_theta_acc", ";K+ Theta / rad;counts", 180, 0, 90.0);
+    TH1I * h_gt_Km_theta_acc = new TH1I("h_gt_Km_theta_acc", ";K- Theta / rad;counts", 180, 0, 90.0);
+    TH1I * h_gt_pip_theta_acc = new TH1I("h_gt_pip_theta_acc", ";#{pi}+ Theta / rad;counts", 180, 0, 90.0);
+    TH1I * h_gt_pim_theta_acc = new TH1I("h_gt_pim_theta_acc", ";#{pi}- Theta / rad;counts", 180, 0, 90.0);
+
+    // canvases to comapre both above
+    TCanvas * c_gt_p_theta = new TCanvas("c_gt_p_theta", "proton Theta: acc vs all", 800, 600);
+    TCanvas * c_gt_Kp_theta = new TCanvas("c_gt_Kp_theta", "K+ Theta: acc vs all", 800, 600);
+    TCanvas * c_gt_Km_theta = new TCanvas("c_gt_Km_theta", "K- Theta: acc vs all", 800, 600);
+    TCanvas * c_gt_pip_theta = new TCanvas("c_gt_pip_theta", "pi+ Theta: acc vs all", 800, 600);
+    TCanvas * c_gt_pim_theta = new TCanvas("c_gt_pim_theta", "pi- Theta: acc vs all", 800, 600);
 
     const int gtnum = goodTracks.size();
 
-    for (Int_t i = 0; i < entries; i++)                    // event loop
+    for (Int_t i = 0; i < entries; ++i)                    // event loop
     {
         /*Int_t nbytes =*/  loop -> nextEvent(i);         // get next event. categories will be cleared before
         //cout << fCatGeantFwDet->getEntries() << endl;
@@ -212,14 +226,14 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             GoodTrack gt;
             gt.found = false;
 
-            for(int k = 0; k < gtnum; k++)
+            for (int k = 0; k < gtnum; ++k)
             {
                 gt = goodTracks[k];
                 gt.track_id = j;
                 if (gt.found) continue;
                 if (gt.pid != ti.pid) continue;   //search all p,pi-,K+
                 TrackInfo t1 = ti;
-                for(int l = 0; l < gt.search_path.size(); l++)
+                for (int l = 0; l < gt.search_path.size(); ++l)
                 {
                     if (t1.parent_id == gt.search_path[l])
                     {
@@ -237,8 +251,8 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                         break;
                     else
                     {
-                        if (trackInf[t1.parent_id].pid == gt.search_path[l])
-                            t1 = trackInf[t1.parent_id];
+                        if (trackInf[ti.parent_id].pid == gt.search_path[l])
+                            t1 = trackInf[ti.parent_id];
                         else
                             break;
                     }
@@ -252,6 +266,8 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
             if (!gt.found)
                 continue;
+
+            Int_t pid = pKine -> getID();
 
             Int_t m0 = 0, m1 = 0, m2 = 0, m3 = 0, s0 = 0, s1 = 0, str = 0, rpc = 0;
 
@@ -271,27 +287,25 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
                 if (s0 or s1)
                 {
-                    Int_t pid = pKine -> getID();
                     switch (pid)
                     {
-                        case 8: ++ cnt_h_pip_acc; ++cnt_h_acc; break;       // pip
-                        case 9: ++ cnt_h_pim_acc; ++cnt_h_acc; break;       // pim
-                        case 11: ++ cnt_h_Kp_acc; ++cnt_h_acc; break;       // Kp
-                        case 12: ++ cnt_h_Km_acc; ++cnt_h_acc; break;       // Km
-                        case 14: ++ cnt_h_p_acc; ++cnt_h_acc; break;        // p
+                        case 8: ++cnt_h_pip_acc; ++cnt_h_acc; break;       // pip
+                        case 9: ++cnt_h_pim_acc; ++cnt_h_acc; break;       // pim
+                        case 11: ++cnt_h_Kp_acc; ++cnt_h_acc; break;       // Kp
+                        case 12: ++cnt_h_Km_acc; ++cnt_h_acc; break;       // Km
+                        case 14: ++cnt_h_p_acc; ++cnt_h_acc; break;        // p
                     }
                 }
 
                 if (str and rpc)
                 {
-                    Int_t pid = pKine -> getID();
                     switch (pid)
                     {
-                        case 8: ++ cnt_f_pip_acc; ++cnt_f_acc; break;       // pip
-                        case 9: ++ cnt_f_pim_acc; ++cnt_f_acc; break;       // pim
-                        case 11: ++ cnt_f_Kp_acc; ++cnt_f_acc; break;       // Kp
-                        case 12: ++ cnt_f_Km_acc; ++cnt_f_acc; break;       // Km
-                        case 14: ++ cnt_f_p_acc; ++cnt_f_acc; break;        // p
+                        case 8: ++cnt_f_pip_acc; ++cnt_f_acc; break;       // pip
+                        case 9: ++cnt_f_pim_acc; ++cnt_f_acc; break;       // pim
+                        case 11: ++cnt_f_Kp_acc; ++cnt_f_acc; break;       // Kp
+                        case 12: ++cnt_f_Km_acc; ++cnt_f_acc; break;       // Km
+                        case 14: ++cnt_f_p_acc; ++cnt_f_acc; break;        // p
                     }
                 }
                 if (gt.req) n_req++;
@@ -310,32 +324,41 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
             if (s0 or s1)
             {
-                Int_t pid = pKine -> getID();
                 switch (pid)
                 {
-                    case 8: ++ cnt_h_pip; ++cnt_h; break;       // pip
-                    case 9: ++ cnt_h_pim; ++cnt_h; break;       // pim
-                    case 11: ++ cnt_h_Kp; ++cnt_h; break;       // Kp
-                    case 12: ++ cnt_h_Km; ++cnt_h; break;       // Km
-                    case 14: ++ cnt_h_p; ++cnt_h; break;        // p
+                    case 8: ++cnt_h_pip; ++cnt_h; break;       // pip
+                    case 9: ++cnt_h_pim; ++cnt_h; break;       // pim
+                    case 11: ++cnt_h_Kp; ++cnt_h; break;       // Kp
+                    case 12: ++cnt_h_Km; ++cnt_h; break;       // Km
+                    case 14: ++cnt_h_p; ++cnt_h; break;        // p
                 }
             }
 
             if (str and rpc)
             {
-                Int_t pid = pKine -> getID();
                 switch (pid)
                 {
-                    case 8: ++ cnt_f_pip; ++cnt_f; break;       // pip
-                    case 9: ++ cnt_f_pim; ++cnt_f; break;       // pim
-                    case 11: ++ cnt_f_Kp; ++cnt_f; break;       // Kp
-                    case 12: ++ cnt_f_Km; ++cnt_f; break;       // Km
-                    case 14: ++ cnt_f_p; ++cnt_f; break;        // p
+                    case 8: ++cnt_f_pip; ++cnt_f; break;       // pip
+                    case 9: ++cnt_f_pim; ++cnt_f; break;       // pim
+                    case 11: ++cnt_f_Kp; ++cnt_f; break;       // Kp
+                    case 12: ++cnt_f_Km; ++cnt_f; break;       // Km
+                    case 14: ++cnt_f_p; ++cnt_f; break;        // p
                 }
             }
 
 //             if (anapars.verbose_flag)
 //                 printf("  [%03d/%0d] pid=%2d parent=%d  s0=%d s1=%d  f=%d  rpc=%d\n", j, tracks_num, pKine->getID(), pKine->getParentTrack()-1, s0, s1, str, rpc);
+
+            Float_t theta = pKine->getThetaDeg();
+
+            switch (pid)
+            {
+                case 8: h_gt_pip_theta->Fill(theta); break;       // pip
+                case 9: h_gt_pim_theta->Fill(theta); break;       // pim
+                case 11: h_gt_Kp_theta->Fill(theta); break;       // Kp
+                case 12: h_gt_Km_theta->Fill(theta); break;       // Km
+                case 14: h_gt_p_theta->Fill(theta); break;        // p
+            }
         }
 
         Bool_t good_event = is_good_event(goodTracks);
@@ -393,7 +416,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             printf("h_p_good=%d,  h_p_all=%d\n", cnt_h_p_acc, cnt_h_p);
             printf("f_p_good=%d,  f_p_all=%d\n", cnt_f_p_acc, cnt_f_p);
 
-            for(int j = 0; j < gtnum; j++)
+            for (int j = 0; j < gtnum; ++j)
             {
                 GoodTrack gd = goodTracks[j];
                 gd.print(j);
@@ -460,6 +483,43 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     h_gt_Km_theta->Write();
     h_gt_pip_theta->Write();
     h_gt_pim_theta->Write();
+
+    h_gt_p_theta_acc->SetLineColor(kRed);
+    h_gt_Kp_theta_acc->SetLineColor(kRed);
+    h_gt_Km_theta_acc->SetLineColor(kRed);
+    h_gt_pip_theta_acc->SetLineColor(kRed);
+    h_gt_pim_theta_acc->SetLineColor(kRed);
+
+    h_gt_p_theta_acc->Write();
+    h_gt_Kp_theta_acc->Write();
+    h_gt_Km_theta_acc->Write();
+    h_gt_pip_theta_acc->Write();
+    h_gt_pim_theta_acc->Write();
+
+    c_gt_p_theta->cd();
+    h_gt_p_theta->Draw();
+    h_gt_p_theta_acc->Draw("same");
+    c_gt_p_theta->Write();
+
+    c_gt_Kp_theta->cd();
+    h_gt_Kp_theta->Draw();
+    h_gt_Kp_theta_acc->Draw("same");
+    c_gt_Kp_theta->Write();
+
+    c_gt_Km_theta->cd();
+    h_gt_Km_theta->Draw();
+    h_gt_Km_theta_acc->Draw("same");
+    c_gt_Km_theta->Write();
+
+    c_gt_pip_theta->cd();
+    h_gt_pip_theta->Draw();
+    h_gt_pip_theta_acc->Draw("same");
+    c_gt_pip_theta->Write();
+
+    c_gt_pim_theta->cd();
+    h_gt_pim_theta->Draw();
+    h_gt_pim_theta_acc->Draw("same");
+    c_gt_pim_theta->Write();
 
     output_file -> Close();
     cout << "writing root tree done" << endl;
