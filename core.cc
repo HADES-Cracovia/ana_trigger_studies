@@ -144,6 +144,13 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
     TH2 * h_hit_mult_hades_fwdet_acc = new TH2I("h_hit_mult_hades_fwdet", "Charged in Hades/FwDet mult;multiplicity;multiplicity", 10, 0, 10, 10, 0, 10);
 
+
+    TH1I * h_gt_p_theta = new TH1I("h_gt_p_theta", ";Theta / rad;counts", 150, 0, 1.5);
+    TH1I * h_gt_Kp_theta = new TH1I("h_gt_Kp_theta", ";Theta / rad;counts", 150, 0, 1.5);
+    TH1I * h_gt_Km_theta = new TH1I("h_gt_Km_theta", ";Theta / rad;counts", 150, 0, 1.5);
+    TH1I * h_gt_pip_theta = new TH1I("h_gt_pip_theta", ";Theta / rad;counts", 150, 0, 1.5);
+    TH1I * h_gt_pim_theta = new TH1I("h_gt_pim_theta", ";Theta / rad;counts", 150, 0, 1.5);
+
     for (Int_t i = 0; i < entries; i++)                    // event loop
     {
         /*Int_t nbytes =*/  loop -> nextEvent(i);         // get next event. categories will be cleared before
@@ -485,6 +492,12 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     h_hit_mult_fwdet_acc -> Write();
 
     h_hit_mult_hades_fwdet_acc -> Write();
+
+    h_gt_p_theta->Write();
+    h_gt_Kp_theta->Write();
+    h_gt_Km_theta->Write();
+    h_gt_pip_theta->Write();
+    h_gt_pim_theta->Write();
 
     output_file -> Close();
     cout << "writing root tree done" << endl;
