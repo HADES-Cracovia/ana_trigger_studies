@@ -204,7 +204,8 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         for (int j = 0; j < gtnum; ++j)
             goodTracks[j].reset();
 
-        if (anapars.verbose_flag) printf("Event %d (tracks=%d)\n", i, tracks_num);
+//        if (anapars.verbose_flag)
+	    printf("Event %d (tracks=%d)\n", i, tracks_num);
 
         for (int j = 0; j < tracks_num; ++j)
         {
@@ -228,15 +229,15 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
             for (int k = 0; k < gtnum; ++k)
             {
-                gt = goodTracks[k];
+		if (goodTracks[k].found) continue;
+		gt = goodTracks[k];
                 gt.track_id = j;
-                if (gt.found) continue;
                 if (gt.pid != ti.pid) continue;   //search all p,pi-,K+
-                TrackInfo t1 = ti;
+		TrackInfo t1 = ti;
                 for (int l = 0; l < gt.search_path.size(); ++l)
                 {
                     if (t1.parent_id == gt.search_path[l])
-                    {
+                    {	
                         if (t1.parent_id == -1)
                         {
                             gt.found = true;
@@ -249,8 +250,8 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                     }
                     else if (t1.parent_id == -1)
                         break;
-                    else
-                    {
+		    else
+                    {	
                         if (trackInf[ti.parent_id].pid == gt.search_path[l])
                             t1 = trackInf[ti.parent_id];
                         else
@@ -274,90 +275,103 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             pKine->getNHitsDecayBit(m0, m1, m2, m3, s0, s1);
             pKine->getNHitsFWDecayBit(str, rpc);
 
-            //fill histos for good events
-            if (gt.found)
-            {
-                h_hit_s0_acc -> Fill(s0);
-                h_hit_s1_acc -> Fill(s1);
-                h_hit_s01_acc -> Fill(s0+s1);
-                h_hit_str_acc -> Fill(str);
-                h_hit_rpc_acc -> Fill(rpc);
-                h_hit_s01_str_acc -> Fill(s0+s1, str);
-                h_tr_mult_acc -> Fill(tracks_num);
+            //fill histos for good events in acceptance
+            // if (gt.found)
+            // {
+	    // h_hit_s0_acc -> Fill(s0);
+	    // h_hit_s1_acc -> Fill(s1);
+	    // h_hit_s01_acc -> Fill(s0+s1);
+	    // h_hit_str_acc -> Fill(str);
+	    // h_hit_rpc_acc -> Fill(rpc);
+	    // h_hit_s01_str_acc -> Fill(s0+s1, str);
+	    // h_tr_mult_acc -> Fill(tracks_num);
 
-                if (s0 or s1)
-                {
-                    switch (pid)
-                    {
-                        case 8: ++cnt_h_pip_acc; ++cnt_h_acc; break;       // pip
-                        case 9: ++cnt_h_pim_acc; ++cnt_h_acc; break;       // pim
-                        case 11: ++cnt_h_Kp_acc; ++cnt_h_acc; break;       // Kp
-                        case 12: ++cnt_h_Km_acc; ++cnt_h_acc; break;       // Km
-                        case 14: ++cnt_h_p_acc; ++cnt_h_acc; break;        // p
-                    }
-                }
+	    if (s0 or s1)
+	    {
+		switch (pid)
+		{
+		case 8: ++cnt_h_pip_acc; ++cnt_h_acc; break;       // pip
+		case 9: ++cnt_h_pim_acc; ++cnt_h_acc; break;       // pim
+		case 11: ++cnt_h_Kp_acc; ++cnt_h_acc; break;       // Kp
+		case 12: ++cnt_h_Km_acc; ++cnt_h_acc; break;       // Km
+		case 14: ++cnt_h_p_acc; ++cnt_h_acc; break;        // p
+		}
+	    }
 
-                if (str and rpc)
-                {
-                    switch (pid)
-                    {
-                        case 8: ++cnt_f_pip_acc; ++cnt_f_acc; break;       // pip
-                        case 9: ++cnt_f_pim_acc; ++cnt_f_acc; break;       // pim
-                        case 11: ++cnt_f_Kp_acc; ++cnt_f_acc; break;       // Kp
-                        case 12: ++cnt_f_Km_acc; ++cnt_f_acc; break;       // Km
-                        case 14: ++cnt_f_p_acc; ++cnt_f_acc; break;        // p
-                    }
-                }
-                if (gt.req) n_req++;
-                if (!gt.req) n_nreq++;
-                n_found++;
-            }
+	    if (str and rpc)
+	    {
+		switch (pid)
+		{
+		case 8: ++cnt_f_pip_acc; ++cnt_f_acc; break;       // pip
+		case 9: ++cnt_f_pim_acc; ++cnt_f_acc; break;       // pim
+		case 11: ++cnt_f_Kp_acc; ++cnt_f_acc; break;       // Kp
+		case 12: ++cnt_f_Km_acc; ++cnt_f_acc; break;       // Km
+		case 14: ++cnt_f_p_acc; ++cnt_f_acc; break;        // p
+		}
+	    }
+	    if (gt.req) n_req++;
+	    if (!gt.req) n_nreq++;
+	    n_found++;
+	    // }
 
-            //fill histos for all events
+            //fill histos for all good events
             h_hit_s0 -> Fill(s0);
-
             h_hit_s1 -> Fill(s1);
             h_hit_s01 -> Fill(s0+s1);
             h_hit_str -> Fill(str);
             h_hit_rpc -> Fill(rpc);
             h_hit_s01_str -> Fill(s0+s1, str);
 
-            if (s0 or s1)
-            {
-                switch (pid)
-                {
-                    case 8: ++cnt_h_pip; ++cnt_h; break;       // pip
-                    case 9: ++cnt_h_pim; ++cnt_h; break;       // pim
-                    case 11: ++cnt_h_Kp; ++cnt_h; break;       // Kp
-                    case 12: ++cnt_h_Km; ++cnt_h; break;       // Km
-                    case 14: ++cnt_h_p; ++cnt_h; break;        // p
-                }
-            }
+            // if (s0 or s1)
+            // {
+	    switch (pid)
+	    {
+	    case 8: ++cnt_h_pip; ++cnt_h; break;       // pip
+	    case 9: ++cnt_h_pim; ++cnt_h; break;       // pim
+	    case 11: ++cnt_h_Kp; ++cnt_h; break;       // Kp
+	    case 12: ++cnt_h_Km; ++cnt_h; break;       // Km
+	    case 14: ++cnt_h_p; ++cnt_h; break;        // p
+	    }
+	    // }
 
-            if (str and rpc)
-            {
-                switch (pid)
-                {
-                    case 8: ++cnt_f_pip; ++cnt_f; break;       // pip
-                    case 9: ++cnt_f_pim; ++cnt_f; break;       // pim
-                    case 11: ++cnt_f_Kp; ++cnt_f; break;       // Kp
-                    case 12: ++cnt_f_Km; ++cnt_f; break;       // Km
-                    case 14: ++cnt_f_p; ++cnt_f; break;        // p
-                }
-            }
+            // if (str and rpc)
+            // {
+	    switch (pid)
+	    {
+	    case 8: ++cnt_f_pip; ++cnt_f; break;       // pip
+	    case 9: ++cnt_f_pim; ++cnt_f; break;       // pim
+	    case 11: ++cnt_f_Kp; ++cnt_f; break;       // Kp
+	    case 12: ++cnt_f_Km; ++cnt_f; break;       // Km
+	    case 14: ++cnt_f_p; ++cnt_f; break;        // p
+	    }
+	    //   }
 
 //             if (anapars.verbose_flag)
-//                 printf("  [%03d/%0d] pid=%2d parent=%d  s0=%d s1=%d  f=%d  rpc=%d\n", j, tracks_num, pKine->getID(), pKine->getParentTrack()-1, s0, s1, str, rpc);
+	    printf("  [%03d/%0d] pid=%2d parent=%d  s0=%d s1=%d  f=%d  rpc=%d found=%d\n", j, tracks_num, pKine->getID(), pKine->getParentTrack()-1, s0, s1, str, rpc, gt.found);
 
             Float_t theta = pKine->getThetaDeg();
 
-            switch (pid)
+	    //theta of good particles in acceptance
+	    if ((str and rpc) and (s0 or s1))
+	    {
+		switch (pid)
+		{
+		case 8: h_gt_pip_theta_acc->Fill(theta); break;       // pip
+                case 9: h_gt_pim_theta_acc->Fill(theta); break;       // pim
+                case 11: h_gt_Kp_theta_acc->Fill(theta); break;       // Kp
+                case 12: h_gt_Km_theta_acc->Fill(theta); break;       // Km
+                case 14: h_gt_p_theta_acc->Fill(theta); break;        // p
+		}
+	    }
+
+	    // theta of good particles
+	    switch (pid)
             {
-                case 8: h_gt_pip_theta->Fill(theta); break;       // pip
-                case 9: h_gt_pim_theta->Fill(theta); break;       // pim
-                case 11: h_gt_Kp_theta->Fill(theta); break;       // Kp
-                case 12: h_gt_Km_theta->Fill(theta); break;       // Km
-                case 14: h_gt_p_theta->Fill(theta); break;        // p
+	    case 8: h_gt_pip_theta->Fill(theta); break;       // pip
+	    case 9: h_gt_pim_theta->Fill(theta); break;       // pim
+	    case 11: h_gt_Kp_theta->Fill(theta); break;       // Kp
+	    case 12: h_gt_Km_theta->Fill(theta); break;       // Km
+	    case 14: h_gt_p_theta->Fill(theta); break;        // p
             }
         }
 
@@ -409,7 +423,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         n_h_pim_acc += cnt_h_pim_acc;
 
         //counts in event
-        if (anapars.verbose_flag)
+	// if (anapars.verbose_flag)
         {
             printf("h_pi_good=%d, h_pi_all=%d\n", cnt_h_pim_acc, cnt_h_pim);
             printf("f_pi_good=%d, f_pi_all=%d\n", cnt_f_pim_acc, cnt_f_pim);
@@ -427,7 +441,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         }
     } // end eventloop
 
-    if (anapars.verbose_flag)
+    //if (anapars.verbose_flag)
         printf("n_h_p=%d, n_h_p_good=%d\n n_f_p=%d, n_f_p_good=%d\n n_h_pim=%d, n_h_pim_good=%d\n", n_h_p, n_h_p_acc, n_f_p, n_f_p_acc, n_h_pim, n_h_pim_acc);
 
     h_tr_mult->Write();
