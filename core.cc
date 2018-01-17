@@ -47,6 +47,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             TObjArray *arr = path2.Tokenize(":");
 
             GoodTrack gd;
+            gd.idx = goodTracks.size();
             gd.pid = abs(pid);
             gd.req = pid < 0 ? false : true;
             gd.reset();
@@ -59,6 +60,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                 int a = s -> GetString().Atoi();
                 gd.search_path.push_back(a);
             }
+            gd.create_gt_histogram();
             goodTracks.push_back(gd);
         }
     }
@@ -204,7 +206,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         for (int j = 0; j < gtnum; ++j)
             goodTracks[j].reset();
 
-        if (anapars.verbose_flag) printf("Event %d (tracks=%d)\n", i, tracks_num);
+        if (anapars.verbose_flag) printf("Event %d (tracks=%d) ( good tracks: '*' - found, '#' - required )\n", i, tracks_num);
 
         for (int j = 0; j < tracks_num; ++j)
         {
@@ -214,58 +216,75 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
             int check_nr = 0;
 
+            TrackInfo ti;
+            ti.track_id = j;
+            ti.parent_track_id = pKine -> getParentTrack()-1;
+            ti.pid = pKine -> getID();
+            ti.parent_pid = ti.parent_track_id != -1 ? trackInf[ti.parent_track_id].pid : -1;
+            trackInf.push_back(ti);
+
             if (pKine -> getID() == 1)   //no gamma
                 continue;
 
-            TrackInfo ti;
-            ti.pid = pKine -> getID();
-            ti.track_id = j;
-            ti.parent_id = pKine -> getParentTrack()-1;
-            trackInf.push_back(ti);
-
             GoodTrack gt;
-            gt.found = false;
+            gt.reset();
 
-            for (int k = 0; k < gtnum; ++k)
+            // go over all good tracks (gt)
+            for (auto & _gt : goodTracks)
             {
-                gt = goodTracks[k];
-                gt.track_id = j;
-                if (gt.found) continue;
-                if (gt.pid != ti.pid) continue;   //search all p,pi-,K+
-                TrackInfo t1 = ti;
-                for (int l = 0; l < gt.search_path.size(); ++l)
+                if (_gt.found) continue;                // if gt was already found, skip it
+                if (_gt.pid != ti.pid) continue;        // if gt has PID different that current track (ti), skip
+                TrackInfo t1 = ti;                      // local copy of track for reverse search
+                for (auto sp_pid : _gt.search_path)     // loop over all pid search path for given gt
                 {
-                    if (t1.parent_id == gt.search_path[l])
+                    if (t1.parent_pid == sp_pid)         // if ti has parent ID the same searched PID
                     {
-                        if (t1.parent_id == -1)
+                        if (t1.parent_pid == -1)
                         {
-                            gt.found = true;
-                            goodTracks[k] = gt;
+                            _gt.found = true;
+                            _gt.track_id = j;
+                            break;
                         }
                         else
                         {
-                            t1 = trackInf[t1.parent_id];
+                            t1 = trackInf[t1.parent_track_id];
                         }
                     }
-                    else if (t1.parent_id == -1)
+                    else if (t1.parent_pid == -1)
+                    {
                         break;
+                    }
                     else
                     {
-                        if (trackInf[ti.parent_id].pid == gt.search_path[l])
-                            t1 = trackInf[ti.parent_id];
+                        if (ti.parent_pid == sp_pid)
+                            t1 = trackInf[ti.parent_track_id];
                         else
                             break;
                     }
                 }
-                if (gt.found)
+                if (_gt.found)
+                {
+                    gt = _gt;
                     break;
+                }
             }
 
-            //printf("j=%d: allTracks: pid=%d, track_id=%d, req=%d, found=%d\n", j, allTracks.back().pid, allTracks.back().track_id, allTracks.back().req, allTracks.back().found);
-            // printf("at: pid=%d, track_id=%d, req=%d, found=%d\n", at.pid, at.track_id, at.req, at.found);
+//             if (anapars.verbose_flag)
+//                 printf("  [%03d/%0d]  %c  pid=%2d parent=%d\n",
+//                        j, tracks_num,
+//                        gt.found ? (gt.req ? '#' : '*' ) : ' ',
+//                        pKine->getID(), pKine->getParentTrack()-1);
 
             if (!gt.found)
                 continue;
+
+            if (anapars.verbose_flag)
+                printf("  [%03d/%0d]  %c  pid=%2d parent=%d\n",
+                       j, tracks_num,
+                       gt.found ? (gt.req ? '#' : '*' ) : ' ',
+                       pKine->getID(), pKine->getParentTrack()-1);
+
+            gt.hist_theta_all->Fill(pKine->getThetaDeg());
 
             Int_t pid = pKine -> getID();
 
@@ -363,6 +382,18 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
         Bool_t good_event = is_good_event(goodTracks);
 
+        if (good_event)
+        {
+            for (auto & gt : goodTracks)
+            {
+                HGeantKine * pKine = (HGeantKine *)fCatGeantKine -> getObject(gt.track_id);
+                if (!pKine)
+                    continue;
+
+                gt.hist_theta_trig->Fill(pKine->getThetaDeg());
+            }
+        }
+        
         //fill histos for good events
         h_hit_mult_hades_p_acc -> Fill(cnt_h_p_acc);
         h_hit_mult_hades_pip_acc -> Fill(cnt_h_pip_acc);
@@ -419,7 +450,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             for (int j = 0; j < gtnum; ++j)
             {
                 GoodTrack gd = goodTracks[j];
-                gd.print(j);
+                gd.print();
             }
             printf(" Good event ? %s\n", good_event ? "yes" : "no");
 
@@ -520,6 +551,19 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     h_gt_pim_theta->Draw();
     h_gt_pim_theta_acc->Draw("same");
     c_gt_pim_theta->Write();
+
+    for (auto & x : goodTracks)
+    {
+        x.hist_theta_all->SetLineColor(kBlack);
+        x.hist_theta_all->Write();
+        x.hist_theta_trig->SetLineColor(kRed);
+        x.hist_theta_trig->Write();
+        TCanvas * c = x.can;
+        c->cd();
+        x.hist_theta_all->Draw();
+        x.hist_theta_trig->Draw("same");
+        c->Write();
+    }
 
     output_file -> Close();
     cout << "writing root tree done" << endl;
