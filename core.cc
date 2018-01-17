@@ -532,7 +532,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
 Bool_t is_good_event(const GTVector& gtv)
 {
-    for (auto x : gtv)
+    for (auto & x : gtv)
     {
         if (x.req)
             if (!x.found)

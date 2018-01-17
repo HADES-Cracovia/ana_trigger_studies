@@ -15,4 +15,6 @@ INC_DIRS += ${HOME}/usr/include
 #default: clean build install
 default: build install
 
+CPP_FLAGS += -std=c++11
+
 include $(HADDIR)/hades.app.mk
