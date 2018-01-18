@@ -108,21 +108,21 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     TH1I * h_hit_rpc = new TH1I("h_hit_rpc", "Tracks mult;multiplicity", 10, 0, 10);
     TH2I * h_hit_s01_str = new TH2I("h_hit_s01_str", "Tracks mult;multiplicity", 3, 0, 3, 20, 0, 20);
 
-    TH1 * h_hit_mult_hades_p = new TH1I("h_hit_mult_hades_p", "Protons in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_hades_pip = new TH1I("h_hit_mult_hades_pip", "pi-plus in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_hades_pim = new TH1I("h_hit_mult_hades_pim", "pi-minus in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_hades_Kp = new TH1I("h_hit_mult_hades_Kp", "K-plus in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_hades_Km = new TH1I("h_hit_mult_hades_Km", "K-minus in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_hades = new TH1I("h_hit_mult_hades", "Charged in Hades mult;multiplicity", 10, 0, 10);
+    TH1 * h_hit_mult_all_p = new TH1I("h_hit_mult_all_p", "Protons all mult;multiplicity", 10, 0, 10);
+    TH1 * h_hit_mult_all_pip = new TH1I("h_hit_mult_all_pip", "pi-plus all mult;multiplicity", 10, 0, 10);
+    TH1 * h_hit_mult_all_pim = new TH1I("h_hit_mult_all_pim", "pi-minus all mult;multiplicity", 10, 0, 10);
+    TH1 * h_hit_mult_all_Kp = new TH1I("h_hit_mult_all_Kp", "K-plus all mult;multiplicity", 10, 0, 10);
+    TH1 * h_hit_mult_all_Km = new TH1I("h_hit_mult_all_Km", "K-minus all mult;multiplicity", 10, 0, 10);
+    TH1 * h_hit_mult_all = new TH1I("h_hit_mult_all", "Charged all mult;multiplicity", 10, 0, 10);
 
-    TH1 * h_hit_mult_fwdet_p = new TH1I("h_hit_mult_fwdet_p", "Protons in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_fwdet_pip = new TH1I("h_hit_mult_fwdet_pip", "pi-plus in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_fwdet_pim = new TH1I("h_hit_mult_fwdet_pim", "pi-minus in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_fwdet_Kp = new TH1I("h_hit_mult_fwdet_Kp", "K-plus in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_fwdet_Km = new TH1I("h_hit_mult_fwdet_Km", "K-minus in Hades mult;multiplicity", 10, 0, 10);
-    TH1 * h_hit_mult_fwdet = new TH1I("h_hit_mult_fwdet", "Charged in Hades mult;multiplicity", 10, 0, 10);
+    // TH1 * h_hit_mult_fwdet_p = new TH1I("h_hit_mult_fwdet_p", "Protons in FT mult;multiplicity", 10, 0, 10);
+    // TH1 * h_hit_mult_fwdet_pip = new TH1I("h_hit_mult_fwdet_pip", "pi-plus in FT mult;multiplicity", 10, 0, 10);
+    // TH1 * h_hit_mult_fwdet_pim = new TH1I("h_hit_mult_fwdet_pim", "pi-minus in FT mult;multiplicity", 10, 0, 10);
+    // TH1 * h_hit_mult_fwdet_Kp = new TH1I("h_hit_mult_fwdet_Kp", "K-plus in FT mult;multiplicity", 10, 0, 10);
+    // TH1 * h_hit_mult_fwdet_Km = new TH1I("h_hit_mult_fwdet_Km", "K-minus in FT mult;multiplicity", 10, 0, 10);
+    // TH1 * h_hit_mult_fwdet = new TH1I("h_hit_mult_fwdet", "Charged in FT mult;multiplicity", 10, 0, 10);
 
-    TH2 * h_hit_mult_hades_fwdet = new TH2I("h_hit_mult_hades_fwdet", "Charged in Hades/FwDet mult;multiplicity;multiplicity", 10, 0, 10, 10, 0, 10);
+    // TH2 * h_hit_mult_hades_fwdet = new TH2I("h_hit_mult_hades_fwdet", "Charged in Hades/FwDet mult;multiplicity;multiplicity", 10, 0, 10, 10, 0, 10);
 
     //only good/accepted events
     TH1I * h_tr_mult_acc = new TH1I("h_tr_mult_acc", "Tracks mult_acc;multiplicity", 1000, 0, 1000);
@@ -181,20 +181,21 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         n_all = tracks_num;
         h_tr_mult -> Fill(tracks_num);
 
-        Int_t cnt_h_p = 0, cnt_h_p_acc = 0;
-        Int_t cnt_h_pip = 0, cnt_h_pip_acc = 0;
-        Int_t cnt_h_pim = 0, cnt_h_pim_acc = 0;
-        Int_t cnt_h_Kp = 0, cnt_h_Kp_acc = 0;
-        Int_t cnt_h_Km = 0, cnt_h_Km_acc = 0;
+        Int_t cnt_h_p_acc = 0, cnt_f_p_acc = 0;
+        Int_t cnt_h_pip_acc = 0, cnt_f_pip_acc = 0;
+        Int_t cnt_h_pim_acc = 0, cnt_f_pim_acc = 0;
+        Int_t cnt_h_Kp_acc = 0, cnt_f_Kp_acc = 0;
+        Int_t cnt_h_Km_acc = 0, cnt_f_Km_acc = 0;
 
-        Int_t cnt_f_p = 0, cnt_f_p_acc = 0;
-        Int_t cnt_f_pip = 0, cnt_f_pip_acc = 0;
-        Int_t cnt_f_pim = 0, cnt_f_pim_acc = 0;
-        Int_t cnt_f_Kp = 0, cnt_f_Kp_acc = 0;
-        Int_t cnt_f_Km = 0, cnt_f_Km_acc = 0;
+        Int_t cnt_p = 0;
+        Int_t cnt_pip = 0;
+        Int_t cnt_pim = 0;
+        Int_t cnt_Kp = 0;
+        Int_t cnt_Km = 0;
 
         Int_t cnt_h = 0, cnt_h_acc = 0;
         Int_t cnt_f = 0, cnt_f_acc = 0;
+    Int_t cnt_all = 0;
 
         n_found = 0;
         n_found_hf = 0;
@@ -205,6 +206,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
         for (int j = 0; j < gtnum; ++j)
             goodTracks[j].reset();
+
 
         if (anapars.verbose_flag) printf("Event %d (tracks=%d) ( good tracks: '*' - found, '#' - required )\n", i, tracks_num);
 
@@ -293,90 +295,88 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             pKine->getNHitsDecayBit(m0, m1, m2, m3, s0, s1);
             pKine->getNHitsFWDecayBit(str, rpc);
 
-            //fill histos for good events
-            if (gt.found)
-            {
-                h_hit_s0_acc -> Fill(s0);
-                h_hit_s1_acc -> Fill(s1);
-                h_hit_s01_acc -> Fill(s0+s1);
-                h_hit_str_acc -> Fill(str);
-                h_hit_rpc_acc -> Fill(rpc);
-                h_hit_s01_str_acc -> Fill(s0+s1, str);
-                h_tr_mult_acc -> Fill(tracks_num);
+            //fill histos for good events in acceptance
+            // if (gt.found)
+            // {
+        // h_hit_s0_acc -> Fill(s0);
+        // h_hit_s1_acc -> Fill(s1);
+        // h_hit_s01_acc -> Fill(s0+s1);
+        // h_hit_str_acc -> Fill(str);
+        // h_hit_rpc_acc -> Fill(rpc);
+        // h_hit_s01_str_acc -> Fill(s0+s1, str);
+        // h_tr_mult_acc -> Fill(tracks_num);
 
-                if (s0 or s1)
-                {
-                    switch (pid)
-                    {
-                        case 8: ++cnt_h_pip_acc; ++cnt_h_acc; break;       // pip
-                        case 9: ++cnt_h_pim_acc; ++cnt_h_acc; break;       // pim
-                        case 11: ++cnt_h_Kp_acc; ++cnt_h_acc; break;       // Kp
-                        case 12: ++cnt_h_Km_acc; ++cnt_h_acc; break;       // Km
-                        case 14: ++cnt_h_p_acc; ++cnt_h_acc; break;        // p
-                    }
-                }
+        if (s0 or s1)
+        {
+        switch (pid)
+        {
+        case 8: ++cnt_h_pip_acc; ++cnt_h_acc; break;       // pip
+        case 9: ++cnt_h_pim_acc; ++cnt_h_acc; break;       // pim
+        case 11: ++cnt_h_Kp_acc; ++cnt_h_acc; break;       // Kp
+        case 12: ++cnt_h_Km_acc; ++cnt_h_acc; break;       // Km
+        case 14: ++cnt_h_p_acc; ++cnt_h_acc; break;        // p
+        }
+        }
 
-                if (str and rpc)
-                {
-                    switch (pid)
-                    {
-                        case 8: ++cnt_f_pip_acc; ++cnt_f_acc; break;       // pip
-                        case 9: ++cnt_f_pim_acc; ++cnt_f_acc; break;       // pim
-                        case 11: ++cnt_f_Kp_acc; ++cnt_f_acc; break;       // Kp
-                        case 12: ++cnt_f_Km_acc; ++cnt_f_acc; break;       // Km
-                        case 14: ++cnt_f_p_acc; ++cnt_f_acc; break;        // p
-                    }
-                }
-                if (gt.req) n_req++;
-                if (!gt.req) n_nreq++;
-                n_found++;
-            }
+        if (str and rpc)
+        {
+        switch (pid)
+        {
+        case 8: ++cnt_f_pip_acc; ++cnt_f_acc; break;       // pip
+        case 9: ++cnt_f_pim_acc; ++cnt_f_acc; break;       // pim
+        case 11: ++cnt_f_Kp_acc; ++cnt_f_acc; break;       // Kp
+        case 12: ++cnt_f_Km_acc; ++cnt_f_acc; break;       // Km
+        case 14: ++cnt_f_p_acc; ++cnt_f_acc; break;        // p
+        }
+        }
+        if (gt.req) n_req++;
+        if (!gt.req) n_nreq++;
+        n_found++;
+        // }
 
-            //fill histos for all events
+            //fill histos for all good events
             h_hit_s0 -> Fill(s0);
-
             h_hit_s1 -> Fill(s1);
             h_hit_s01 -> Fill(s0+s1);
             h_hit_str -> Fill(str);
             h_hit_rpc -> Fill(rpc);
             h_hit_s01_str -> Fill(s0+s1, str);
 
-            if (s0 or s1)
-            {
-                switch (pid)
-                {
-                    case 8: ++cnt_h_pip; ++cnt_h; break;       // pip
-                    case 9: ++cnt_h_pim; ++cnt_h; break;       // pim
-                    case 11: ++cnt_h_Kp; ++cnt_h; break;       // Kp
-                    case 12: ++cnt_h_Km; ++cnt_h; break;       // Km
-                    case 14: ++cnt_h_p; ++cnt_h; break;        // p
-                }
-            }
-
-            if (str and rpc)
-            {
-                switch (pid)
-                {
-                    case 8: ++cnt_f_pip; ++cnt_f; break;       // pip
-                    case 9: ++cnt_f_pim; ++cnt_f; break;       // pim
-                    case 11: ++cnt_f_Kp; ++cnt_f; break;       // Kp
-                    case 12: ++cnt_f_Km; ++cnt_f; break;       // Km
-                    case 14: ++cnt_f_p; ++cnt_f; break;        // p
-                }
-            }
-
-//             if (anapars.verbose_flag)
-//                 printf("  [%03d/%0d] pid=%2d parent=%d  s0=%d s1=%d  f=%d  rpc=%d\n", j, tracks_num, pKine->getID(), pKine->getParentTrack()-1, s0, s1, str, rpc);
+        switch (pid)
+        {
+        case 8: ++cnt_pip; ++cnt_all; break;       // pip
+        case 9: ++cnt_pim; ++cnt_all; break;       // pim
+        case 11: ++cnt_Kp; ++cnt_all; break;       // Kp
+        case 12: ++cnt_Km; ++cnt_all; break;       // Km
+        case 14: ++cnt_p; ++cnt_all; break;        // p
+        }
+       
+            if (anapars.verbose_flag)
+        printf("  [%03d/%0d] pid=%2d parent=%d  s0=%d s1=%d  f=%d  rpc=%d found=%d\n", j, tracks_num, pKine->getID(), pKine->getParentTrack()-1, s0, s1, str, rpc, gt.found);
 
             Float_t theta = pKine->getThetaDeg();
 
-            switch (pid)
+        //theta of good particles in acceptance
+        if ((str and rpc) or (s0 or s1))
+        {
+        switch (pid)
+        {
+        case 8: h_gt_pip_theta_acc->Fill(theta); break;       // pip
+                case 9: h_gt_pim_theta_acc->Fill(theta); break;       // pim
+                case 11: h_gt_Kp_theta_acc->Fill(theta); break;       // Kp
+                case 12: h_gt_Km_theta_acc->Fill(theta); break;       // Km
+                case 14: h_gt_p_theta_acc->Fill(theta); break;        // p
+        }
+        }
+
+        // theta of good particles
+        switch (pid)
             {
-                case 8: h_gt_pip_theta->Fill(theta); break;       // pip
-                case 9: h_gt_pim_theta->Fill(theta); break;       // pim
-                case 11: h_gt_Kp_theta->Fill(theta); break;       // Kp
-                case 12: h_gt_Km_theta->Fill(theta); break;       // Km
-                case 14: h_gt_p_theta->Fill(theta); break;        // p
+        case 8: h_gt_pip_theta->Fill(theta); break;       // pip
+        case 9: h_gt_pim_theta->Fill(theta); break;       // pim
+        case 11: h_gt_Kp_theta->Fill(theta); break;       // Kp
+        case 12: h_gt_Km_theta->Fill(theta); break;       // Km
+        case 14: h_gt_p_theta->Fill(theta); break;        // p
             }
         }
 
@@ -412,41 +412,39 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         h_hit_mult_hades_fwdet_acc -> Fill(cnt_h_acc, cnt_f_acc);
 
         //foll histots for all events
-        h_hit_mult_hades_p -> Fill(cnt_h_p);
-        h_hit_mult_hades_pip -> Fill(cnt_h_pip);
-        h_hit_mult_hades_pim -> Fill(cnt_h_pim);
-        h_hit_mult_hades_Kp -> Fill(cnt_h_Kp);
-        h_hit_mult_hades_Km -> Fill(cnt_h_Km);
-        h_hit_mult_hades -> Fill(cnt_h);
+        h_hit_mult_all_p -> Fill(cnt_p);
+        h_hit_mult_all_pip -> Fill(cnt_pip);
+        h_hit_mult_all_pim -> Fill(cnt_pim);
+        h_hit_mult_all_Kp -> Fill(cnt_Kp);
+        h_hit_mult_all_Km -> Fill(cnt_Km);
+        h_hit_mult_all -> Fill(cnt_all);
 
-        h_hit_mult_fwdet_p -> Fill(cnt_f_p);
-        h_hit_mult_fwdet_pip -> Fill(cnt_f_pip);
-        h_hit_mult_fwdet_pim -> Fill(cnt_f_pim);
-        h_hit_mult_fwdet_Kp -> Fill(cnt_f_Kp);
-        h_hit_mult_fwdet_Km -> Fill(cnt_f_Km);
-        h_hit_mult_fwdet -> Fill(cnt_f);
+        // h_hit_mult_fwdet_p -> Fill(cnt_f_p);
+        // h_hit_mult_fwdet_pip -> Fill(cnt_f_pip);
+        // h_hit_mult_fwdet_pim -> Fill(cnt_f_pim);
+        // h_hit_mult_fwdet_Kp -> Fill(cnt_f_Kp);
+        // h_hit_mult_fwdet_Km -> Fill(cnt_f_Km);
+        // h_hit_mult_fwdet -> Fill(cnt_f);
 
-        h_hit_mult_hades_fwdet -> Fill(cnt_h, cnt_f);
+    // h_hit_mult_hades_fwdet -> Fill(cnt_h, cnt_f);
 
         if (anapars.verbose_flag)
             printf("\n");
 
         //all counts
-        n_h_p += cnt_h_p;
-        n_h_p_acc += cnt_h_p_acc;
-        n_f_p += cnt_f_p;
-        n_f_p_acc += cnt_f_p_acc;
-        n_h_pim += cnt_h_pim;
-        n_h_pim_acc += cnt_h_pim_acc;
+        // n_h_p += cnt_h_p;
+        // n_h_p_acc += cnt_h_p_acc;
+        // n_f_p += cnt_f_p;
+        // n_f_p_acc += cnt_f_p_acc;
+        // n_h_pim += cnt_h_pim;
+        // n_h_pim_acc += cnt_h_pim_acc;
 
         //counts in event
         if (anapars.verbose_flag)
         {
-            printf("h_pi_good=%d, h_pi_all=%d\n", cnt_h_pim_acc, cnt_h_pim);
-            printf("f_pi_good=%d, f_pi_all=%d\n", cnt_f_pim_acc, cnt_f_pim);
-            printf("h_p_good=%d,  h_p_all=%d\n", cnt_h_p_acc, cnt_h_p);
-            printf("f_p_good=%d,  f_p_all=%d\n", cnt_f_p_acc, cnt_f_p);
-
+            printf("h_pi_good=%d, f_pi_good=%d, pi_all=%d\n", cnt_h_pim_acc, cnt_f_pim_acc, cnt_pim);
+             printf("h_p_good=%d, f_p_good=%d, p_all=%d\n", cnt_h_p_acc, cnt_f_p_acc, cnt_p);
+            
             for (int j = 0; j < gtnum; ++j)
             {
                 GoodTrack gd = goodTracks[j];
@@ -458,8 +456,8 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         }
     } // end eventloop
 
-    if (anapars.verbose_flag)
-        printf("n_h_p=%d, n_h_p_good=%d\n n_f_p=%d, n_f_p_good=%d\n n_h_pim=%d, n_h_pim_good=%d\n", n_h_p, n_h_p_acc, n_f_p, n_f_p_acc, n_h_pim, n_h_pim_acc);
+    // if (anapars.verbose_flag)
+    //     printf("n_h_p=%d, n_h_p_good=%d\n n_f_p=%d, n_f_p_good=%d\n n_h_pim=%d, n_h_pim_good=%d\n", n_h_p, n_h_p_acc, n_f_p, n_f_p_acc, n_h_pim, n_h_pim_acc);
 
     h_tr_mult->Write();
     h_hit_s0->Write();
@@ -469,21 +467,21 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     h_hit_rpc->Write();
     h_hit_s01_str->Write();
 
-    h_hit_mult_hades_p->Write();
-    h_hit_mult_hades_pip->Write();
-    h_hit_mult_hades_pim->Write();
-    h_hit_mult_hades_Kp->Write();
-    h_hit_mult_hades_Km->Write();
-    h_hit_mult_hades->Write();
+    h_hit_mult_all_p->Write();
+    h_hit_mult_all_pip->Write();
+    h_hit_mult_all_pim->Write();
+    h_hit_mult_all_Kp->Write();
+    h_hit_mult_all_Km->Write();
+    h_hit_mult_all->Write();
 
-    h_hit_mult_fwdet_p->Write();
-    h_hit_mult_fwdet_pip->Write();
-    h_hit_mult_fwdet_pim->Write();
-    h_hit_mult_fwdet_Kp->Write();
-    h_hit_mult_fwdet_Km->Write();
-    h_hit_mult_fwdet->Write();
+    // h_hit_mult_fwdet_p->Write();
+    // h_hit_mult_fwdet_pip->Write();
+    // h_hit_mult_fwdet_pim->Write();
+    // h_hit_mult_fwdet_Kp->Write();
+    // h_hit_mult_fwdet_Km->Write();
+    // h_hit_mult_fwdet->Write();
 
-    h_hit_mult_hades_fwdet->Write();
+    // h_hit_mult_hades_fwdet->Write();
 
     h_tr_mult_acc -> Write();
     h_hit_s0_acc -> Write();
