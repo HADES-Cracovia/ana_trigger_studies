@@ -9,6 +9,9 @@
 
 #include "TH2I.h"
 #include "TCanvas.h"
+#include "TLegend.h"
+#include "TLatex.h"
+
 #include "fstream"
 #include "iostream"
 
@@ -223,10 +226,13 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             ti.parent_track_id = pKine -> getParentTrack()-1;
             ti.pid = pKine -> getID();
             ti.parent_pid = ti.parent_track_id != -1 ? trackInf[ti.parent_track_id].pid : -1;
-            trackInf.push_back(ti);
 
+            // if gamma, push it to the vector and continue
             if (pKine -> getID() == 1)   //no gamma
+            {
+                trackInf.push_back(ti);
                 continue;
+            }
 
             GoodTrack gt;
             gt.reset();
@@ -277,8 +283,28 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 //                        gt.found ? (gt.req ? '#' : '*' ) : ' ',
 //                        pKine->getID(), pKine->getParentTrack()-1);
 
+            // if not good track, push it to the vector and continue
             if (!gt.found)
+            {
+                trackInf.push_back(ti);
                 continue;
+            }
+
+            // check if track in aceptance
+            Int_t m0 = 0, m1 = 0, m2 = 0, m3 = 0, s0 = 0, s1 = 0, str = 0, rpc = 0;
+            pKine->getNHitsDecayBit(m0, m1, m2, m3, s0, s1);
+            pKine->getNHitsFWDecayBit(str, rpc);
+
+            pKine->fillAcceptanceBit();
+            UInt_t acc2 = pKine->getAcceptanceFWBit();
+            Int_t nrpc = 0;
+            Bool_t is_good_fwdet_acc = pKine->isInTrackAcceptanceFWDecayBit(nrpc);
+
+            // is hit in hades and fwdet
+            ti.is_hades_hit = (s0 or s1) and (m0>0 and m1>0 and m2>0 and m3>0);
+            ti.is_fwdet_hit = is_good_fwdet_acc;
+            ti.is_in_acc = ti.is_hades_hit or ti.is_fwdet_hit and (nrpc > 0);
+            trackInf.push_back(ti);
 
             if (anapars.verbose_flag)
                 printf("  [%03d/%0d]  %c  pid=%2d parent=%d\n",
@@ -287,10 +313,12 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                        pKine->getID(), pKine->getParentTrack()-1);
 
             gt.hist_theta_all->Fill(pKine->getThetaDeg());
+//             if (ti.hades_hit)
+//                 gt.hist_theta_had->Fill(pKine->getThetaDeg());
+//             if (is_good_fwdet_acc)
+//                 gt.hist_theta_fwd->Fill(pKine->getThetaDeg());
 
             Int_t pid = pKine -> getID();
-
-            Int_t m0 = 0, m1 = 0, m2 = 0, m3 = 0, s0 = 0, s1 = 0, str = 0, rpc = 0;
 
             pKine->getNHitsDecayBit(m0, m1, m2, m3, s0, s1);
             pKine->getNHitsFWDecayBit(str, rpc);
@@ -380,20 +408,33 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             }
         }
 
+        // Good event is one, where all required tracks are found
         Bool_t good_event = is_good_event(goodTracks);
 
+        // If we have good event, check if all required tracks are in the acceptance
         if (good_event)
         {
-            for (auto & gt : goodTracks)
-            {
-                HGeantKine * pKine = (HGeantKine *)fCatGeantKine -> getObject(gt.track_id);
-                if (!pKine)
-                    continue;
+            Bool_t all_req_in_acc = is_good_event_in_acc(goodTracks, trackInf);
 
-                gt.hist_theta_trig->Fill(pKine->getThetaDeg());
+            if (all_req_in_acc)
+            {
+                for (auto & gt : goodTracks)
+                {
+                    HGeantKine * pKine = (HGeantKine *)fCatGeantKine -> getObject(gt.track_id);
+                    if (!pKine)
+                        continue;
+
+                    TrackInfo & ti = trackInf[gt.track_id];
+                    if (ti.is_hades_hit)
+                        gt.hist_theta_had->Fill(pKine->getThetaDeg());
+                    if (ti.is_fwdet_hit)
+                        gt.hist_theta_fwd->Fill(pKine->getThetaDeg());
+
+                    gt.hist_theta_acc->Fill(pKine->getThetaDeg());
+                }
             }
         }
-        
+
         //fill histos for good events
         h_hit_mult_hades_p_acc -> Fill(cnt_h_p_acc);
         h_hit_mult_hades_pip_acc -> Fill(cnt_h_pip_acc);
@@ -550,16 +591,39 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     h_gt_pim_theta_acc->Draw("same");
     c_gt_pim_theta->Write();
 
+    TLatex * tex = new TLatex;
+    tex->SetNDC(kTRUE);
+
     for (auto & x : goodTracks)
     {
         x.hist_theta_all->SetLineColor(kBlack);
         x.hist_theta_all->Write();
-        x.hist_theta_trig->SetLineColor(kRed);
-        x.hist_theta_trig->Write();
+        x.hist_theta_acc->SetLineWidth(0);
+        x.hist_theta_acc->SetLineColor(0);
+        x.hist_theta_acc->SetFillColor(46);
+        x.hist_theta_acc->Write();
+        x.hist_theta_had->SetLineColor(30);
+        x.hist_theta_had->SetLineWidth(2);
+        x.hist_theta_had->Write();
+        x.hist_theta_fwd->SetLineColor(38);
+        x.hist_theta_fwd->SetLineWidth(2);
+        x.hist_theta_fwd->Write();
         TCanvas * c = x.can;
         c->cd();
         x.hist_theta_all->Draw();
-        x.hist_theta_trig->Draw("same");
+        x.hist_theta_acc->Draw("same");
+        x.hist_theta_fwd->Draw("same");
+        x.hist_theta_had->Draw("same");
+
+        TLegend * leg = new TLegend(0.6, 0.8, 0.9, 0.9);
+        leg->AddEntry(x.hist_theta_all, "Good events", "lp");
+        leg->AddEntry(x.hist_theta_had, "required in acceptance in hades", "lp");
+        leg->AddEntry(x.hist_theta_fwd, "required in acceptance in fwd", "lp");
+        leg->AddEntry(x.hist_theta_acc, "required in acceptance", "lp");
+        leg->Draw();
+        tex->DrawLatex(0.6, 0.70, TString::Format("# all = %.0f", x.hist_theta_all->Integral()));
+        tex->DrawLatex(0.6, 0.65, TString::Format("# acc = %.0f", x.hist_theta_acc->Integral()));
+        c->SetLogy();
         c->Write();
     }
 
@@ -581,4 +645,28 @@ Bool_t is_good_event(const GTVector& gtv)
                 return kFALSE;
     }
     return kTRUE;
+}
+
+// This function assumes that event is good, no further check. Call is_good_event() before.
+Bool_t is_good_event_in_acc(const GTVector& gtv, const TIVector& ti)
+{
+    for (auto & x : gtv)
+    {
+        if (x.req)
+            if (!ti[x.track_id].is_in_acc)
+                return kFALSE;
+    }
+    return kTRUE;
+}
+
+Bool_t is_full_straw_track(HGeantKine * pKine)
+{
+    return ( (pKine->getStrawLayer(0) or pKine->getStrawLayer(1) ) and
+             (pKine->getStrawLayer(2) or pKine->getStrawLayer(3) ) and
+             (pKine->getStrawLayer(4) or pKine->getStrawLayer(5) ) and
+             (pKine->getStrawLayer(6) or pKine->getStrawLayer(7) ) and
+             (pKine->getStrawLayer(8) or pKine->getStrawLayer(9) ) and
+             (pKine->getStrawLayer(10) or pKine->getStrawLayer(11) ) and
+             (pKine->getStrawLayer(12) or pKine->getStrawLayer(13) ) and
+             (pKine->getStrawLayer(14) or pKine->getStrawLayer(15) ) );
 }

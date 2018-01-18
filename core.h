@@ -66,16 +66,21 @@ typedef std::vector<int> SPVector;
 
 struct GoodTrack
 {
-    int idx = -1;
-    int pid;
-    int track_id;
-    bool req;
-    bool found;
-    SPVector search_path;
-    string search_str;
-    TH1 * hist_theta_all = NULL;
-    TH1 * hist_theta_trig = NULL;
-    TCanvas * can = NULL;
+    int idx = -1;           // #index       | fixed
+
+    int pid;                // pid          | fixed
+    int track_id;           // track id     | by-event
+    bool req;               // required     | fixed
+    bool found;             // is found     | by-event
+
+    SPVector search_path;   // decay chain  | fixed
+    string search_str;      // decay chain  | fixed
+    TH1 * hist_theta_all = NULL;    // hist | accumulated
+    TH1 * hist_theta_had = NULL;    // hist | accumulated
+    TH1 * hist_theta_fwd = NULL;    // hist | accumulated
+    TH1 * hist_theta_acc = NULL;    // host | accumulated
+    TCanvas * can = NULL;   // canvas       | accumulated
+
     void print() const
     {
         printf("%2d  pid=%2d  req=%d  found=%d  ss=%s  id_track=%d\n",
@@ -98,9 +103,10 @@ struct GoodTrack
             ss << "_" << (x == -1 ? 0 : x);
             ss_can << "_" << (x == -1 ? 0 : x);
         }
-        hist_theta_all = new TH1I(ss.str().c_str(), ";Theta / deg;counts", 360, 0, 180);
-        ss << "_trig";
-        hist_theta_trig = new TH1I(ss.str().c_str(), ";Theta / deg;counts", 360, 0, 180);
+        hist_theta_all = new TH1I(ss.str().c_str(), ";Theta / deg;counts", 180, 0, 180);
+        hist_theta_had = new TH1I((ss.str() + "_had").c_str(), ";Theta / deg;counts", 180, 0, 180);
+        hist_theta_fwd = new TH1I((ss.str() + "_fwd").c_str(), ";Theta / deg;counts", 180, 0, 180);
+        hist_theta_acc = new TH1I((ss.str() + "_acc").c_str(), ";Theta / deg;counts", 180, 0, 180);
 
         can = new TCanvas(ss_can.str().c_str(), ss_can.str().c_str(), 800, 600);
     }
@@ -108,16 +114,25 @@ struct GoodTrack
 
 struct TrackInfo
 {
-    int pid;
-    int parent_pid;
-    int track_id;
-    int parent_track_id;
+    int pid = -1;
+    int parent_pid = -1;
+    int track_id = -1;
+    int parent_track_id = -1;
+
+    bool is_hades_hit = false;
+    bool is_fwdet_hit = false;
+
+    bool is_in_acc = false;
 };
 
 Int_t core(HLoop * loop, const AnaParameters & anapars);
 
 typedef std::vector<GoodTrack> GTVector;
+typedef std::vector<TrackInfo> TIVector;
 
 Bool_t is_good_event(const GTVector & gtv);
+Bool_t is_good_event_in_acc(const GTVector & gtv, const TIVector & tiv);
+
+Bool_t is_full_straw_track(HGeantKine * pKine);
 
 #endif /* FWDET_TESTS_H */
