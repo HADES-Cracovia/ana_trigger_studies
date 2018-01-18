@@ -173,6 +173,9 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     TCanvas * c_gt_pip_theta = new TCanvas("c_gt_pip_theta", "pi+ Theta: acc vs all", 800, 600);
     TCanvas * c_gt_pim_theta = new TCanvas("c_gt_pim_theta", "pi- Theta: acc vs all", 800, 600);
 
+    TH1 * h_gt_mult_acc = new TH1I("h_gt_mult_acc", ";Tracks multiplicity in acceptance;counts", 10, 0, 10);
+    TCanvas * c_gt_mult_acc = new TCanvas("c_gt_mult_acc", "Tracks multiplicity in acceptance", 800, 600);
+
     const int gtnum = goodTracks.size();
 
     for (Int_t i = 0; i < entries; ++i)                    // event loop
@@ -198,7 +201,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
         Int_t cnt_h = 0, cnt_h_acc = 0;
         Int_t cnt_f = 0, cnt_f_acc = 0;
-    Int_t cnt_all = 0;
+        Int_t cnt_all = 0;
 
         n_found = 0;
         n_found_hf = 0;
@@ -312,7 +315,12 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                        gt.found ? (gt.req ? '#' : '*' ) : ' ',
                        pKine->getID(), pKine->getParentTrack()-1);
 
-            gt.hist_theta_all->Fill(pKine->getThetaDeg());
+            Float_t theta = pKine->getThetaDeg();
+            Float_t p = pKine->getTotalMomentum();
+
+            gt.hist_theta_all->Fill(theta);
+            gt.hist_p_all->Fill(p);
+            gt.hist_p_theta_all->Fill(p, theta);
 //             if (ti.hades_hit)
 //                 gt.hist_theta_had->Fill(pKine->getThetaDeg());
 //             if (is_good_fwdet_acc)
@@ -382,7 +390,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             if (anapars.verbose_flag)
         printf("  [%03d/%0d] pid=%2d parent=%d  s0=%d s1=%d  f=%d  rpc=%d found=%d\n", j, tracks_num, pKine->getID(), pKine->getParentTrack()-1, s0, s1, str, rpc, gt.found);
 
-            Float_t theta = pKine->getThetaDeg();
+        theta = pKine->getThetaDeg();
 
         //theta of good particles in acceptance
         if ((str and rpc) or (s0 or s1))
@@ -418,20 +426,38 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
             if (all_req_in_acc)
             {
+                Int_t cnt = 0;
                 for (auto & gt : goodTracks)
                 {
                     HGeantKine * pKine = (HGeantKine *)fCatGeantKine -> getObject(gt.track_id);
                     if (!pKine)
                         continue;
 
+                    Float_t theta = pKine->getThetaDeg();
+                    Float_t p = pKine->getTotalMomentum();
+
                     TrackInfo & ti = trackInf[gt.track_id];
                     if (ti.is_hades_hit)
-                        gt.hist_theta_had->Fill(pKine->getThetaDeg());
+                    {
+                        gt.hist_theta_had->Fill(theta);
+                        gt.hist_p_had->Fill(p);
+                        gt.hist_p_theta_had->Fill(p, theta);
+                    }
                     if (ti.is_fwdet_hit)
-                        gt.hist_theta_fwd->Fill(pKine->getThetaDeg());
+                    {
+                        gt.hist_theta_fwd->Fill(theta);
+                        gt.hist_p_fwd->Fill(p);
+                        gt.hist_p_theta_fwd->Fill(p, theta);
+                    }
 
-                    gt.hist_theta_acc->Fill(pKine->getThetaDeg());
+                    gt.hist_theta_acc->Fill(theta);
+                    gt.hist_p_acc->Fill(p);
+                    gt.hist_p_theta_acc->Fill(p, theta);
+
+                    if (ti.is_in_acc)
+                        ++cnt;
                 }
+                h_gt_mult_acc->Fill(cnt);
             }
         }
 
@@ -596,6 +622,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
     for (auto & x : goodTracks)
     {
+        // theta
         x.hist_theta_all->SetLineColor(kBlack);
         x.hist_theta_all->Write();
         x.hist_theta_acc->SetLineWidth(0);
@@ -608,7 +635,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         x.hist_theta_fwd->SetLineColor(38);
         x.hist_theta_fwd->SetLineWidth(2);
         x.hist_theta_fwd->Write();
-        TCanvas * c = x.can;
+        TCanvas * c = x.can_theta;
         c->cd();
         x.hist_theta_all->Draw();
         x.hist_theta_acc->Draw("same");
@@ -623,9 +650,56 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         leg->Draw();
         tex->DrawLatex(0.6, 0.70, TString::Format("# all = %.0f", x.hist_theta_all->Integral()));
         tex->DrawLatex(0.6, 0.65, TString::Format("# acc = %.0f", x.hist_theta_acc->Integral()));
+        
+        tex->DrawLatex(0.6, 0.55, TString::Format("# fwd = %.0f", x.hist_theta_fwd->Integral()));
+        tex->DrawLatex(0.6, 0.50, TString::Format("# had = %.0f", x.hist_theta_had->Integral()));
         c->SetLogy();
         c->Write();
+
+        // p
+        x.hist_p_all->SetLineColor(kBlack);
+        x.hist_p_all->Write();
+        x.hist_p_acc->SetLineWidth(0);
+        x.hist_p_acc->SetLineColor(0);
+        x.hist_p_acc->SetFillColor(46);
+        x.hist_p_acc->Write();
+        x.hist_p_had->SetLineColor(30);
+        x.hist_p_had->SetLineWidth(2);
+        x.hist_p_had->Write();
+        x.hist_p_fwd->SetLineColor(38);
+        x.hist_p_fwd->SetLineWidth(2);
+        x.hist_p_fwd->Write();
+        c = x.can_p;
+        c->cd();
+        x.hist_p_all->Draw();
+        x.hist_p_acc->Draw("same");
+        x.hist_p_fwd->Draw("same");
+        x.hist_p_had->Draw("same");
+
+        leg->Draw();
+        tex->DrawLatex(0.6, 0.70, TString::Format("# all = %.0f", x.hist_p_all->Integral()));
+        tex->DrawLatex(0.6, 0.65, TString::Format("# acc = %.0f", x.hist_p_acc->Integral()));
+        
+        tex->DrawLatex(0.6, 0.55, TString::Format("# fwd = %.0f", x.hist_p_fwd->Integral()));
+        tex->DrawLatex(0.6, 0.50, TString::Format("# had = %.0f", x.hist_p_had->Integral()));
+        c->SetLogy();
+        c->Write();
+
+        // p-theta
+        x.hist_p_theta_all->Write();
+        x.hist_p_theta_acc->Write();
+        x.hist_p_theta_had->Write();
+        x.hist_p_theta_fwd->Write();
+        c = x.can_p_theta;
+        c->cd();
+        x.hist_p_theta_acc->Draw("colz");
+        c->Write();
     }
+    h_gt_mult_acc->SetMarkerSize(2);
+    h_gt_mult_acc->Write();
+    c_gt_mult_acc->cd();
+    h_gt_mult_acc->Draw("h,text30");
+    c_gt_mult_acc->Write();
 
     output_file -> Close();
     cout << "writing root tree done" << endl;
