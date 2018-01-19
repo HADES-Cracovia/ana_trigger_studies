@@ -52,7 +52,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             GoodTrack gd;
             gd.idx = goodTracks.size();
             gd.pid = abs(pid);
-            gd.req = pid < 0 ? false : true;
+            gd.required = pid < 0 ? false : true;
             gd.reset();
             gd.search_str = path;
 
@@ -68,11 +68,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         }
     }
 
-    int n_found, n_found_hf, n_req, n_nreq, n_all;
-
-    //    float n_nra, n_fa, h_pim, f_pim, h_p, f_p;
-    int n_h_p, n_h_p_acc, n_f_p, n_f_p_acc, n_h_pim, n_h_pim_acc, n_f_pim, n_f_pim_acc;
-    n_h_p = 0; n_h_p_acc = 0; n_f_p = 0; n_f_p_acc = 0; n_h_pim = 0; n_h_pim_acc = 0; n_f_pim = 0; n_f_pim_acc = 0;
+    int n_found, n_req, n_nreq;
 
     TStopwatch timer;
     timer.Reset();
@@ -150,28 +146,11 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     TH1 * h_hit_mult_fwdet_Km_acc = new TH1I("h_hit_mult_fwdet_Km_acc", "K-minus in FT mult_acc;multiplicity", 10, 0, 10);
     TH1 * h_hit_mult_fwdet_acc = new TH1I("h_hit_mult_fwdet_acc", "Charged in FT mult_acc;multiplicity", 10, 0, 10);
 
-    TH2 * h_hit_mult_hades_fwdet_acc = new TH2I("h_hit_mult_hades_fwdet_acc", "Charged in Hades/FwDet mult_acc;multiplicity;multiplicity", 10, 0, 10, 10, 0, 10);
+    TH2 * h_hit_mult_hades_fwdet_req_acc = new TH2I("h_hit_mult_hades_fwdet_req_acc", "Charged in Hades/FwDet mult_acc;Hades;FwDet", 8, 0, 8, 8, 0, 8);
+    TH2 * h_hit_mult_hades_fwdet_acc = new TH2I("h_hit_mult_hades_fwdet_acc", "Charged in Hades/FwDet mult_acc;Hades;FwDet", 8, 0, 8, 8, 0, 8);
 
-    // theta of good particles
-    TH1I * h_gt_p_theta = new TH1I("h_gt_p_theta", ";proton Theta / rad;counts", 360, 0, 180.0);
-    TH1I * h_gt_Kp_theta = new TH1I("h_gt_Kp_theta", ";K+ Theta / rad;counts", 360, 0, 180.0);
-    TH1I * h_gt_Km_theta = new TH1I("h_gt_Km_theta", ";K- Theta / rad;counts", 360, 0, 180.0);
-    TH1I * h_gt_pip_theta = new TH1I("h_gt_pip_theta", ";#{pi}+ Theta / rad;counts", 360, 0, 180.0);
-    TH1I * h_gt_pim_theta = new TH1I("h_gt_pim_theta", ";#{pi}- Theta / rad;counts", 360, 0, 180.0);
-
-    // theta of good particles in acceptance
-    TH1I * h_gt_p_theta_acc = new TH1I("h_gt_p_theta_acc", ";proton Theta / rad;counts", 180, 0, 90.0);
-    TH1I * h_gt_Kp_theta_acc = new TH1I("h_gt_Kp_theta_acc", ";K+ Theta / rad;counts", 180, 0, 90.0);
-    TH1I * h_gt_Km_theta_acc = new TH1I("h_gt_Km_theta_acc", ";K- Theta / rad;counts", 180, 0, 90.0);
-    TH1I * h_gt_pip_theta_acc = new TH1I("h_gt_pip_theta_acc", ";#{pi}+ Theta / rad;counts", 180, 0, 90.0);
-    TH1I * h_gt_pim_theta_acc = new TH1I("h_gt_pim_theta_acc", ";#{pi}- Theta / rad;counts", 180, 0, 90.0);
-
-    // canvases to comapre both above
-    TCanvas * c_gt_p_theta = new TCanvas("c_gt_p_theta", "proton Theta: acc vs all", 800, 600);
-    TCanvas * c_gt_Kp_theta = new TCanvas("c_gt_Kp_theta", "K+ Theta: acc vs all", 800, 600);
-    TCanvas * c_gt_Km_theta = new TCanvas("c_gt_Km_theta", "K- Theta: acc vs all", 800, 600);
-    TCanvas * c_gt_pip_theta = new TCanvas("c_gt_pip_theta", "pi+ Theta: acc vs all", 800, 600);
-    TCanvas * c_gt_pim_theta = new TCanvas("c_gt_pim_theta", "pi- Theta: acc vs all", 800, 600);
+    TCanvas * c_hit_mult_hades_fwdet_req_acc = new TCanvas("c_hit_mult_hades_fwdet_req_acc", "Required tracks multiplicity in acceptance Hades/FwDet", 800, 600);
+    TCanvas * c_hit_mult_hades_fwdet_acc = new TCanvas("c_hit_mult_hades_fwdet_acc", "Tracks multiplicity in acceptance Hades/FwDet", 800, 600);
 
     TH1 * h_gt_mult_acc = new TH1I("h_gt_mult_acc", ";Tracks multiplicity in acceptance;counts", 10, 0, 10);
     TCanvas * c_gt_mult_acc = new TCanvas("c_gt_mult_acc", "Tracks multiplicity in acceptance", 800, 600);
@@ -184,7 +163,6 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         //cout << fCatGeantFwDet->getEntries() << endl;
 
         int tracks_num = fCatGeantKine -> getEntries();
-        n_all = tracks_num;
         h_tr_mult -> Fill(tracks_num);
 
         Int_t cnt_h_p_acc = 0, cnt_f_p_acc = 0;
@@ -199,12 +177,15 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         Int_t cnt_Kp = 0;
         Int_t cnt_Km = 0;
 
-        Int_t cnt_h = 0, cnt_h_acc = 0;
-        Int_t cnt_f = 0, cnt_f_acc = 0;
+        Int_t cnt_h_acc = 0;
+        Int_t cnt_f_acc = 0;
+
+        Int_t cnt_h_req_acc = 0;
+        Int_t cnt_f_req_acc = 0;
+
         Int_t cnt_all = 0;
 
         n_found = 0;
-        n_found_hf = 0;
         n_req = 0;
         n_nreq = 0;
 
@@ -221,8 +202,6 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             HGeantKine * pKine = (HGeantKine *)fCatGeantKine -> getObject(j);
             if (!pKine)
                 continue;
-
-            int check_nr = 0;
 
             TrackInfo ti;
             ti.track_id = j;
@@ -299,25 +278,25 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             pKine->getNHitsFWDecayBit(str, rpc);
 
             pKine->fillAcceptanceBit();
-            UInt_t acc2 = pKine->getAcceptanceFWBit();
             Int_t nrpc = 0;
             Bool_t is_good_fwdet_acc = pKine->isInTrackAcceptanceFWDecayBit(nrpc);
 
             // is hit in hades and fwdet
             ti.is_hades_hit = (s0 or s1) and (m0>0 and m1>0 and m2>0 and m3>0);
             ti.is_fwdet_hit = is_good_fwdet_acc;
-            ti.is_in_acc = ti.is_hades_hit or ti.is_fwdet_hit and (nrpc > 0);
+            ti.is_in_acc = ti.is_hades_hit or (ti.is_fwdet_hit and (nrpc > 0));
             trackInf.push_back(ti);
 
             if (anapars.verbose_flag)
                 printf("  [%03d/%0d]  %c  pid=%2d parent=%d\n",
                        j, tracks_num,
-                       gt.found ? (gt.req ? '#' : '*' ) : ' ',
+                       gt.found ? (gt.required ? '#' : '*' ) : ' ',
                        pKine->getID(), pKine->getParentTrack()-1);
 
             Float_t theta = pKine->getThetaDeg();
             Float_t p = pKine->getTotalMomentum();
 
+            // fill all tracks that are good tracks
             gt.hist_theta_all->Fill(theta);
             gt.hist_p_all->Fill(p);
             gt.hist_p_theta_all->Fill(p, theta);
@@ -331,44 +310,9 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             pKine->getNHitsDecayBit(m0, m1, m2, m3, s0, s1);
             pKine->getNHitsFWDecayBit(str, rpc);
 
-            //fill histos for good events in acceptance
-            // if (gt.found)
-            // {
-        // h_hit_s0_acc -> Fill(s0);
-        // h_hit_s1_acc -> Fill(s1);
-        // h_hit_s01_acc -> Fill(s0+s1);
-        // h_hit_str_acc -> Fill(str);
-        // h_hit_rpc_acc -> Fill(rpc);
-        // h_hit_s01_str_acc -> Fill(s0+s1, str);
-        // h_tr_mult_acc -> Fill(tracks_num);
-
-        if (s0 or s1)
-        {
-        switch (pid)
-        {
-        case 8: ++cnt_h_pip_acc; ++cnt_h_acc; break;       // pip
-        case 9: ++cnt_h_pim_acc; ++cnt_h_acc; break;       // pim
-        case 11: ++cnt_h_Kp_acc; ++cnt_h_acc; break;       // Kp
-        case 12: ++cnt_h_Km_acc; ++cnt_h_acc; break;       // Km
-        case 14: ++cnt_h_p_acc; ++cnt_h_acc; break;        // p
-        }
-        }
-
-        if (str and rpc)
-        {
-        switch (pid)
-        {
-        case 8: ++cnt_f_pip_acc; ++cnt_f_acc; break;       // pip
-        case 9: ++cnt_f_pim_acc; ++cnt_f_acc; break;       // pim
-        case 11: ++cnt_f_Kp_acc; ++cnt_f_acc; break;       // Kp
-        case 12: ++cnt_f_Km_acc; ++cnt_f_acc; break;       // Km
-        case 14: ++cnt_f_p_acc; ++cnt_f_acc; break;        // p
-        }
-        }
-        if (gt.req) n_req++;
-        if (!gt.req) n_nreq++;
-        n_found++;
-        // }
+            if (gt.required) n_req++;
+            if (!gt.required) n_nreq++;
+            n_found++;
 
             //fill histos for all good events
             h_hit_s0 -> Fill(s0);
@@ -378,42 +322,17 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             h_hit_rpc -> Fill(rpc);
             h_hit_s01_str -> Fill(s0+s1, str);
 
-        switch (pid)
-        {
-        case 8: ++cnt_pip; ++cnt_all; break;       // pip
-        case 9: ++cnt_pim; ++cnt_all; break;       // pim
-        case 11: ++cnt_Kp; ++cnt_all; break;       // Kp
-        case 12: ++cnt_Km; ++cnt_all; break;       // Km
-        case 14: ++cnt_p; ++cnt_all; break;        // p
-        }
-       
-            if (anapars.verbose_flag)
-        printf("  [%03d/%0d] pid=%2d parent=%d  s0=%d s1=%d  f=%d  rpc=%d found=%d\n", j, tracks_num, pKine->getID(), pKine->getParentTrack()-1, s0, s1, str, rpc, gt.found);
-
-        theta = pKine->getThetaDeg();
-
-        //theta of good particles in acceptance
-        if ((str and rpc) or (s0 or s1))
-        {
-        switch (pid)
-        {
-        case 8: h_gt_pip_theta_acc->Fill(theta); break;       // pip
-                case 9: h_gt_pim_theta_acc->Fill(theta); break;       // pim
-                case 11: h_gt_Kp_theta_acc->Fill(theta); break;       // Kp
-                case 12: h_gt_Km_theta_acc->Fill(theta); break;       // Km
-                case 14: h_gt_p_theta_acc->Fill(theta); break;        // p
-        }
-        }
-
-        // theta of good particles
-        switch (pid)
+            switch (pid)
             {
-        case 8: h_gt_pip_theta->Fill(theta); break;       // pip
-        case 9: h_gt_pim_theta->Fill(theta); break;       // pim
-        case 11: h_gt_Kp_theta->Fill(theta); break;       // Kp
-        case 12: h_gt_Km_theta->Fill(theta); break;       // Km
-        case 14: h_gt_p_theta->Fill(theta); break;        // p
+                case 8: ++cnt_pip; ++cnt_all; break;       // pip
+                case 9: ++cnt_pim; ++cnt_all; break;       // pim
+                case 11: ++cnt_Kp; ++cnt_all; break;       // Kp
+                case 12: ++cnt_Km; ++cnt_all; break;       // Km
+                case 14: ++cnt_p; ++cnt_all; break;        // p
             }
+
+            if (anapars.verbose_flag)
+                printf("  [%03d/%0d] pid=%2d parent=%d  s0=%d s1=%d  f=%d  rpc=%d found=%d\n", j, tracks_num, pKine->getID(), pKine->getParentTrack()-1, s0, s1, str, rpc, gt.found);
         }
 
         // Good event is one, where all required tracks are found
@@ -442,12 +361,18 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                         gt.hist_theta_had->Fill(theta);
                         gt.hist_p_had->Fill(p);
                         gt.hist_p_theta_had->Fill(p, theta);
+
+                        ++cnt_h_acc;
+                        if (gt.required) ++cnt_h_req_acc;
                     }
                     if (ti.is_fwdet_hit)
                     {
                         gt.hist_theta_fwd->Fill(theta);
                         gt.hist_p_fwd->Fill(p);
                         gt.hist_p_theta_fwd->Fill(p, theta);
+
+                        ++cnt_f_acc;
+                        if (gt.required) ++cnt_f_req_acc;
                     }
 
                     gt.hist_theta_acc->Fill(theta);
@@ -458,6 +383,9 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                         ++cnt;
                 }
                 h_gt_mult_acc->Fill(cnt);
+
+                h_hit_mult_hades_fwdet_req_acc -> Fill(cnt_h_req_acc, cnt_f_req_acc);
+                h_hit_mult_hades_fwdet_acc -> Fill(cnt_h_acc, cnt_f_acc);
             }
         }
 
@@ -476,8 +404,6 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         h_hit_mult_fwdet_Km_acc -> Fill(cnt_f_Km_acc);
         h_hit_mult_fwdet_acc -> Fill(cnt_f_acc);
 
-        h_hit_mult_hades_fwdet_acc -> Fill(cnt_h_acc, cnt_f_acc);
-
         //foll histots for all events
         h_hit_mult_all_p -> Fill(cnt_p);
         h_hit_mult_all_pip -> Fill(cnt_pip);
@@ -493,7 +419,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         // h_hit_mult_fwdet_Km -> Fill(cnt_f_Km);
         // h_hit_mult_fwdet -> Fill(cnt_f);
 
-    // h_hit_mult_hades_fwdet -> Fill(cnt_h, cnt_f);
+        // h_hit_mult_hades_fwdet -> Fill(cnt_h, cnt_f);
 
         if (anapars.verbose_flag)
             printf("\n");
@@ -523,9 +449,6 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         }
     } // end eventloop
 
-    // if (anapars.verbose_flag)
-    //     printf("n_h_p=%d, n_h_p_good=%d\n n_f_p=%d, n_f_p_good=%d\n n_h_pim=%d, n_h_pim_good=%d\n", n_h_p, n_h_p_acc, n_f_p, n_f_p_acc, n_h_pim, n_h_pim_acc);
-
     h_tr_mult->Write();
     h_hit_s0->Write();
     h_hit_s1->Write();
@@ -540,15 +463,6 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     h_hit_mult_all_Kp->Write();
     h_hit_mult_all_Km->Write();
     h_hit_mult_all->Write();
-
-    // h_hit_mult_fwdet_p->Write();
-    // h_hit_mult_fwdet_pip->Write();
-    // h_hit_mult_fwdet_pim->Write();
-    // h_hit_mult_fwdet_Kp->Write();
-    // h_hit_mult_fwdet_Km->Write();
-    // h_hit_mult_fwdet->Write();
-
-    // h_hit_mult_hades_fwdet->Write();
 
     h_tr_mult_acc -> Write();
     h_hit_s0_acc -> Write();
@@ -572,50 +486,21 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     h_hit_mult_fwdet_Km_acc -> Write();
     h_hit_mult_fwdet_acc -> Write();
 
-    h_hit_mult_hades_fwdet_acc -> Write();
+    h_hit_mult_hades_fwdet_req_acc->SetMarkerColor(kWhite);
+    h_hit_mult_hades_fwdet_req_acc->SetMarkerSize(2);
+    h_hit_mult_hades_fwdet_req_acc->Write();
 
-    h_gt_p_theta->Write();
-    h_gt_Kp_theta->Write();
-    h_gt_Km_theta->Write();
-    h_gt_pip_theta->Write();
-    h_gt_pim_theta->Write();
+    h_hit_mult_hades_fwdet_acc->SetMarkerColor(kWhite);
+    h_hit_mult_hades_fwdet_acc->SetMarkerSize(2);
+    h_hit_mult_hades_fwdet_acc->Write();
 
-    h_gt_p_theta_acc->SetLineColor(kRed);
-    h_gt_Kp_theta_acc->SetLineColor(kRed);
-    h_gt_Km_theta_acc->SetLineColor(kRed);
-    h_gt_pip_theta_acc->SetLineColor(kRed);
-    h_gt_pim_theta_acc->SetLineColor(kRed);
+    c_hit_mult_hades_fwdet_req_acc->cd();
+    h_hit_mult_hades_fwdet_req_acc->Draw("colz,text30");
+    c_hit_mult_hades_fwdet_req_acc->Write();
 
-    h_gt_p_theta_acc->Write();
-    h_gt_Kp_theta_acc->Write();
-    h_gt_Km_theta_acc->Write();
-    h_gt_pip_theta_acc->Write();
-    h_gt_pim_theta_acc->Write();
-
-    c_gt_p_theta->cd();
-    h_gt_p_theta->Draw();
-    h_gt_p_theta_acc->Draw("same");
-    c_gt_p_theta->Write();
-
-    c_gt_Kp_theta->cd();
-    h_gt_Kp_theta->Draw();
-    h_gt_Kp_theta_acc->Draw("same");
-    c_gt_Kp_theta->Write();
-
-    c_gt_Km_theta->cd();
-    h_gt_Km_theta->Draw();
-    h_gt_Km_theta_acc->Draw("same");
-    c_gt_Km_theta->Write();
-
-    c_gt_pip_theta->cd();
-    h_gt_pip_theta->Draw();
-    h_gt_pip_theta_acc->Draw("same");
-    c_gt_pip_theta->Write();
-
-    c_gt_pim_theta->cd();
-    h_gt_pim_theta->Draw();
-    h_gt_pim_theta_acc->Draw("same");
-    c_gt_pim_theta->Write();
+    c_hit_mult_hades_fwdet_acc->cd();
+    h_hit_mult_hades_fwdet_acc->Draw("colz,text30");
+    c_hit_mult_hades_fwdet_acc->Write();
 
     TLatex * tex = new TLatex;
     tex->SetNDC(kTRUE);
@@ -627,7 +512,10 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         x.hist_theta_all->Write();
         x.hist_theta_acc->SetLineWidth(0);
         x.hist_theta_acc->SetLineColor(0);
-        x.hist_theta_acc->SetFillColor(46);
+        if (x.required)
+            x.hist_theta_acc->SetFillColor(46);
+        else
+            x.hist_theta_acc->SetFillColor(41);
         x.hist_theta_acc->Write();
         x.hist_theta_had->SetLineColor(30);
         x.hist_theta_had->SetLineWidth(2);
@@ -643,7 +531,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         x.hist_theta_had->Draw("same");
 
         TLegend * leg = new TLegend(0.6, 0.8, 0.9, 0.9);
-        leg->AddEntry(x.hist_theta_all, "Good events", "lp");
+        leg->AddEntry(x.hist_theta_all, "Good tracks", "lp");
         leg->AddEntry(x.hist_theta_had, "required in acceptance in hades", "lp");
         leg->AddEntry(x.hist_theta_fwd, "required in acceptance in fwd", "lp");
         leg->AddEntry(x.hist_theta_acc, "required in acceptance", "lp");
@@ -661,7 +549,10 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         x.hist_p_all->Write();
         x.hist_p_acc->SetLineWidth(0);
         x.hist_p_acc->SetLineColor(0);
-        x.hist_p_acc->SetFillColor(46);
+        if (x.required)
+            x.hist_p_acc->SetFillColor(46);
+        else
+            x.hist_p_acc->SetFillColor(41);
         x.hist_p_acc->Write();
         x.hist_p_had->SetLineColor(30);
         x.hist_p_had->SetLineWidth(2);
@@ -714,7 +605,7 @@ Bool_t is_good_event(const GTVector& gtv)
 {
     for (auto & x : gtv)
     {
-        if (x.req)
+        if (x.required)
             if (!x.found)
                 return kFALSE;
     }
@@ -726,21 +617,9 @@ Bool_t is_good_event_in_acc(const GTVector& gtv, const TIVector& ti)
 {
     for (auto & x : gtv)
     {
-        if (x.req)
+        if (x.required)
             if (!ti[x.track_id].is_in_acc)
                 return kFALSE;
     }
     return kTRUE;
-}
-
-Bool_t is_full_straw_track(HGeantKine * pKine)
-{
-    return ( (pKine->getStrawLayer(0) or pKine->getStrawLayer(1) ) and
-             (pKine->getStrawLayer(2) or pKine->getStrawLayer(3) ) and
-             (pKine->getStrawLayer(4) or pKine->getStrawLayer(5) ) and
-             (pKine->getStrawLayer(6) or pKine->getStrawLayer(7) ) and
-             (pKine->getStrawLayer(8) or pKine->getStrawLayer(9) ) and
-             (pKine->getStrawLayer(10) or pKine->getStrawLayer(11) ) and
-             (pKine->getStrawLayer(12) or pKine->getStrawLayer(13) ) and
-             (pKine->getStrawLayer(14) or pKine->getStrawLayer(15) ) );
 }

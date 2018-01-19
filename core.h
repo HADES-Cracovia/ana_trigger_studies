@@ -70,7 +70,7 @@ struct GoodTrack
 
     int pid;                // pid          | fixed
     int track_id;           // track id     | by-event
-    bool req;               // required     | fixed
+    bool required;          // required     | fixed
     bool found;             // is found     | by-event
 
     SPVector search_path;   // decay chain  | fixed
@@ -97,7 +97,7 @@ struct GoodTrack
     void print() const
     {
         printf("%2d  pid=%2d  req=%d  found=%d  ss=%s  id_track=%d\n",
-               idx, pid, req, found, search_str.c_str(), track_id);
+               idx, pid, required, found, search_str.c_str(), track_id);
     }
     void reset()
     {
@@ -171,7 +171,5 @@ typedef std::vector<TrackInfo> TIVector;
 
 Bool_t is_good_event(const GTVector & gtv);
 Bool_t is_good_event_in_acc(const GTVector & gtv, const TIVector & tiv);
-
-Bool_t is_full_straw_track(HGeantKine * pKine);
 
 #endif /* FWDET_TESTS_H */
