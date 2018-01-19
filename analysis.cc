@@ -20,8 +20,8 @@ int main(int argc, char **argv)
     // argc has to be nargs+1
 
     /* Flag set by ‘--verbose’. */
-    static int verbose_flag;
-    static int flag_sim;
+    static int verbose_flag = 0;
+    static int flag_sim = 0;
 
     int c;
     long int events = -1;
@@ -34,10 +34,10 @@ int main(int argc, char **argv)
         static struct option long_options[] =
         {
             /* These options set a flag. */
-            {"verbose", no_argument,       &verbose_flag, 1},
-            {"brief",   no_argument,       &verbose_flag, 0},
-            {"sim",     no_argument,       &flag_sim, 1},
-            {"exp",        no_argument,        &flag_sim, 0},
+            {"verbose",   no_argument,       &verbose_flag, 1},
+            {"brief",     no_argument,       &verbose_flag, 0},
+            {"sim",       no_argument,       &flag_sim, 1},
+            {"exp",       no_argument,       &flag_sim, 0},
             /* These options don’t set a flag.
              *              We distinguish them by their indices. */
 //            {"add",     no_argument,       0, 'a'},
@@ -45,10 +45,10 @@ int main(int argc, char **argv)
 //            {"delete",  required_argument, 0, 'd'},
 //            {"create",  required_argument, 0, 'c'},
 //            {"file",    required_argument, 0, 'f'},
-	    {"config",    required_argument,    0,    'c'},
-            {"output",    required_argument,    0,    'o'},
-            {"events",    required_argument,    0,    'e'},
-            {"mom",        required_argument,    0,    'm'},
+            {"config",    required_argument, 0, 'c'},
+            {"output",    required_argument, 0, 'o'},
+            {"events",    required_argument, 0, 'e'},
+            {"mom",       required_argument, 0, 'm'},
             {0, 0, 0, 0}
         };
         /* getopt_long stores the option index here. */
