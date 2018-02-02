@@ -56,6 +56,8 @@
 struct AnaParameters
 {
     int verbose_flag;
+    int nomdc_flag;
+    int nofdrpc_flag;
     TString outfile, config;
     int events;
     float beam_momentum;

@@ -12,8 +12,7 @@
 #include "TLegend.h"
 #include "TLatex.h"
 
-#include "fstream"
-#include "iostream"
+#include "fstream"#include "iostream"
 
 #define PR(x) std::cout << "++DEBUG: " << #x << " = |" << x << "| (" << __FILE__ << ", " << __LINE__ << ")\n";
 
@@ -274,7 +273,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
             // check if track in aceptance
             Int_t m0 = 0, m1 = 0, m2 = 0, m3 = 0, s0 = 0, s1 = 0, str = 0, rpc = 0;
-            pKine->getNHitsDecayBit(m0, m1, m2, m3, s0, s1);
+	    pKine->getNHitsDecayBit(m0, m1, m2, m3, s0, s1);
             pKine->getNHitsFWDecayBit(str, rpc);
 
             pKine->fillAcceptanceBit();
@@ -284,9 +283,16 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             // is hit in hades and fwdet
             //                |------------------- HADES --------------------|
             //                |- META -|     |------------- MDC -------------|
-            ti.is_hades_hit = (s0 or s1) and (m0>0 and m1>0 and m2>0 and m3>0);
-            ti.is_fwdet_hit = is_good_fwdet_acc;
-            ti.is_in_acc = ti.is_hades_hit or (ti.is_fwdet_hit and (nrpc > 0));
+	    if (anapars.nomdc_flag)
+		ti.is_hades_hit = (s0 or s1);
+	    else
+		ti.is_hades_hit = (s0 or s1) and (m0>0 and m1>0 and m2>0 and m3>0);
+	    if (anapars.nofdrpc_flag)
+		ti.is_fwdet_hit = is_good_fwdet_acc;
+	    else
+		ti.is_fwdet_hit = is_good_fwdet_acc and (nrpc > 0);
+	    
+	    ti.is_in_acc = ti.is_hades_hit or (ti.is_fwdet_hit);
             trackInf.push_back(ti);
 
             if (anapars.verbose_flag)
@@ -358,16 +364,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                     Float_t p = pKine->getTotalMomentum();
 
                     TrackInfo & ti = trackInf[gt.track_id];
-                    if (ti.is_hades_hit)
-                    {
-                        gt.hist_theta_had->Fill(theta);
-                        gt.hist_p_had->Fill(p);
-                        gt.hist_p_theta_had->Fill(p, theta);
-
-                        ++cnt_h_acc;
-                        if (gt.required) ++cnt_h_req_acc;
-                    }
-                    if (ti.is_fwdet_hit)
+		    if (ti.is_fwdet_hit)
                     {
                         gt.hist_theta_fwd->Fill(theta);
                         gt.hist_p_fwd->Fill(p);
@@ -376,7 +373,16 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                         ++cnt_f_acc;
                         if (gt.required) ++cnt_f_req_acc;
                     }
+		    else if (ti.is_hades_hit)
+                    {
+                        gt.hist_theta_had->Fill(theta);
+                        gt.hist_p_had->Fill(p);
+                        gt.hist_p_theta_had->Fill(p, theta);
 
+                        ++cnt_h_acc;
+                        if (gt.required) ++cnt_h_req_acc;
+                    }
+                   
                     gt.hist_theta_acc->Fill(theta);
                     gt.hist_p_acc->Fill(p);
                     gt.hist_p_theta_acc->Fill(p, theta);
@@ -451,7 +457,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         }
     } // end eventloop
 
-    h_tr_mult->Write();
+    /* h_tr_mult->Write();
     h_hit_s0->Write();
     h_hit_s1->Write();
     h_hit_s01->Write();
@@ -486,7 +492,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     h_hit_mult_fwdet_pim_acc -> Write();
     h_hit_mult_fwdet_Kp_acc -> Write();
     h_hit_mult_fwdet_Km_acc -> Write();
-    h_hit_mult_fwdet_acc -> Write();
+    h_hit_mult_fwdet_acc -> Write();*/
 
     h_hit_mult_hades_fwdet_req_acc->SetMarkerColor(kWhite);
     h_hit_mult_hades_fwdet_req_acc->SetMarkerSize(2);
