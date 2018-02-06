@@ -155,7 +155,12 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     TCanvas * c_gt_mult_acc = new TCanvas("c_gt_mult_acc", "Tracks multiplicity in acceptance", 800, 600);
 
     const int gtnum = goodTracks.size();
-
+    int n_all_ge = 0, n_acc_ge = 0;
+    // int n_all_0 = 0, n_all_1 = 0, n_all_2 = 0;
+    // int n_acc_0 = 0, n_acc_1 = 0, n_acc_2 = 0;
+    // int n_facc_0 = 0, n_facc_1 = 0, n_facc_2 = 0;
+    // int n_hacc_0 = 0, n_hacc_1 = 0, n_hacc_2 = 0;
+    
     for (Int_t i = 0; i < entries; ++i)                    // event loop
     {
         /*Int_t nbytes =*/  loop -> nextEvent(i);         // get next event. categories will be cleared before
@@ -304,10 +309,11 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             Float_t theta = pKine->getThetaDeg();
             Float_t p = pKine->getTotalMomentum();
 
-            // fill all tracks that are good tracks
+	    /*  // fill all tracks that are good tracks
             gt.hist_theta_all->Fill(theta);
             gt.hist_p_all->Fill(p);
             gt.hist_p_theta_all->Fill(p, theta);
+	    */
 //             if (ti.hades_hit)
 //                 gt.hist_theta_had->Fill(pKine->getThetaDeg());
 //             if (is_good_fwdet_acc)
@@ -330,25 +336,57 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             h_hit_rpc -> Fill(rpc);
             h_hit_s01_str -> Fill(s0+s1, str);
 
-            switch (pid)
+	    /* switch (pid)
             {
                 case 8: ++cnt_pip; ++cnt_all; break;       // pip
                 case 9: ++cnt_pim; ++cnt_all; break;       // pim
                 case 11: ++cnt_Kp; ++cnt_all; break;       // Kp
                 case 12: ++cnt_Km; ++cnt_all; break;       // Km
                 case 14: ++cnt_p; ++cnt_all; break;        // p
-            }
-
-            if (anapars.verbose_flag)
-                printf("  [%03d/%0d] pid=%2d parent=%d  s0=%d s1=%d  f=%d  rpc=%d found=%d\n", j, tracks_num, pKine->getID(), pKine->getParentTrack()-1, s0, s1, str, rpc, gt.found);
+		}
+	    */
+            // if (anapars.verbose_flag)
+            //     printf("  [%03d/%0d] pid=%2d parent=%d  s0=%d s1=%d  f=%d  rpc=%d found=%d\n", j, tracks_num, pKine->getID(), pKine->getParentTrack()-1, s0, s1, str, rpc, gt.found);
         }
 
         // Good event is one, where all required tracks are found
         Bool_t good_event = is_good_event(goodTracks);
 
-        // If we have good event, check if all required tracks are in the acceptance
-        if (good_event)
+	if (good_event)
         {
+	    Int_t cnt_all_ge = 0;
+	    for (auto & gt : goodTracks)
+	    {
+		HGeantKine * pKine = (HGeantKine *)fCatGeantKine -> getObject(gt.track_id);
+		if (!pKine)
+		    continue;
+
+		Float_t theta = pKine->getThetaDeg();
+		Float_t p = pKine->getTotalMomentum();
+		Int_t pid = pKine -> getID();
+		
+		// fill all tracks that are good tracks
+		if(gt.found)
+		{
+		    gt.hist_theta_all->Fill(theta);
+		    gt.hist_p_all->Fill(p);
+		    gt.hist_p_theta_all->Fill(p, theta);
+
+		    switch (pid)
+		    {
+		    case 8: ++cnt_pip; ++cnt_all; break;       // pip
+		    case 9: ++cnt_pim; ++cnt_all; break;       // pim
+		    case 11: ++cnt_Kp; ++cnt_all; break;       // Kp
+		    case 12: ++cnt_Km; ++cnt_all; break;       // Km
+		    case 14: ++cnt_p; ++cnt_all; break;        // p
+		    }
+		    ++n_all_ge;
+		    ++cnt_all_ge;
+		}
+		
+		}
+
+	   // If we have good event, check if all required tracks are in the acceptance
             Bool_t all_req_in_acc = is_good_event_in_acc(goodTracks, trackInf);
 
             if (all_req_in_acc)
@@ -388,14 +426,17 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                     gt.hist_p_theta_acc->Fill(p, theta);
 
                     if (ti.is_in_acc)
+		    {
                         ++cnt;
+			++n_acc_ge;
+		    }
                 }
                 h_gt_mult_acc->Fill(cnt);
 
                 h_hit_mult_hades_fwdet_req_acc -> Fill(cnt_h_req_acc, cnt_f_req_acc);
                 h_hit_mult_hades_fwdet_acc -> Fill(cnt_h_acc, cnt_f_acc);
-            }
-        }
+	    }
+	}
 
         //fill histos for good events
         h_hit_mult_hades_p_acc -> Fill(cnt_h_p_acc);
@@ -412,7 +453,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         h_hit_mult_fwdet_Km_acc -> Fill(cnt_f_Km_acc);
         h_hit_mult_fwdet_acc -> Fill(cnt_f_acc);
 
-        //foll histots for all events
+        //fill histots for all events
         h_hit_mult_all_p -> Fill(cnt_p);
         h_hit_mult_all_pip -> Fill(cnt_pip);
         h_hit_mult_all_pim -> Fill(cnt_pim);
@@ -428,24 +469,17 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         // h_hit_mult_fwdet -> Fill(cnt_f);
 
         // h_hit_mult_hades_fwdet -> Fill(cnt_h, cnt_f);
-
+	
+		
         if (anapars.verbose_flag)
-            printf("\n");
-
-        //all counts
-        // n_h_p += cnt_h_p;
-        // n_h_p_acc += cnt_h_p_acc;
-        // n_f_p += cnt_f_p;
-        // n_f_p_acc += cnt_f_p_acc;
-        // n_h_pim += cnt_h_pim;
-        // n_h_pim_acc += cnt_h_pim_acc;
+            printf("\n"); 
 
         //counts in event
         if (anapars.verbose_flag)
         {
             printf("h_pi_good=%d, f_pi_good=%d, pi_all=%d\n", cnt_h_pim_acc, cnt_f_pim_acc, cnt_pim);
-             printf("h_p_good=%d, f_p_good=%d, p_all=%d\n", cnt_h_p_acc, cnt_f_p_acc, cnt_p);
-            
+	    printf("h_p_good=%d, f_p_good=%d, p_all=%d\n", cnt_h_p_acc, cnt_f_p_acc, cnt_p);
+	               
             for (int j = 0; j < gtnum; ++j)
             {
                 GoodTrack gd = goodTracks[j];
@@ -549,6 +583,11 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         
         tex->DrawLatex(0.6, 0.55, TString::Format("# fwd = %.0f", x.hist_theta_fwd->Integral()));
         tex->DrawLatex(0.6, 0.50, TString::Format("# had = %.0f", x.hist_theta_had->Integral()));
+	// tex->DrawLatex(0.6, 0.70, TString::Format("# all = %.0f", cnt_all_ge));
+        // tex->DrawLatex(0.6, 0.65, TString::Format("# acc = %.0f", cnt));
+
+        // tex->DrawLatex(0.6, 0.55, TString::Format("# fwd = %.0f", cnt_f_acc));
+	// tex->DrawLatex(0.6, 0.50, TString::Format("# had = %.0f", cnt_h_acc));
         c->SetLogy();
         c->Write();
 
