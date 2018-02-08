@@ -24,6 +24,7 @@ int main(int argc, char **argv)
     static int flag_sim = 0;
     static int nomdc_flag = 0;
     static int nofdrpc_flag = 0;
+    static int decay_only_flag = 0;
 
     int c;
     long int events = -1;
@@ -44,6 +45,7 @@ int main(int argc, char **argv)
             {"mdc",       no_argument,       &nomdc_flag, 0},
             {"nofdrpc",   no_argument,       &nofdrpc_flag, 1},
             {"fdrpc",     no_argument,       &nofdrpc_flag, 0},
+            {"decay",     no_argument,       &decay_only_flag, 1},
             /* These options don’t set a flag.
              *              We distinguish them by their indices. */
 //            {"add",     no_argument,       0, 'a'},
@@ -151,6 +153,7 @@ int main(int argc, char **argv)
     anapars.verbose_flag = verbose_flag;
     anapars.nomdc_flag = nomdc_flag;
     anapars.nofdrpc_flag = nofdrpc_flag;
+    anapars.decay_only_flag = decay_only_flag;
     anapars.config = config;
     anapars.outfile = output;
     anapars.events = events;

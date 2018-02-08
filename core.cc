@@ -209,6 +209,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             ti.parent_track_id = pKine -> getParentTrack()-1;
             ti.pid = pKine -> getID();
             ti.parent_pid = ti.parent_track_id != -1 ? trackInf[ti.parent_track_id].pid : -1;
+            ti.mechanism = pKine->getMechanism();
 
             // if gamma, push it to the vector and continue
             if (pKine -> getID() == 1)   //no gamma
@@ -271,6 +272,12 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
             // if not good track, push it to the vector and continue
             if (!gt.found)
+            {
+                trackInf.push_back(ti);
+                continue;
+            }
+
+            if (anapars.decay_only_flag and (ti.parent_pid != -1) and (ti.mechanism != 5))
             {
                 trackInf.push_back(ti);
                 continue;
@@ -357,7 +364,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         }
 
         // Good event is one, where all required tracks are found
-        Bool_t good_event = is_good_event(goodTracks);
+        Bool_t good_event = is_good_event(goodTracks, trackInf, anapars.decay_only_flag);
 
         // If we have good event, check if all required tracks are in the acceptance
         if (good_event)
@@ -375,6 +382,11 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
                     Float_t theta = pKine->getThetaDeg();
                     Float_t p = pKine->getTotalMomentum();
+
+                    Float_t x, y, z;
+                    pKine->getVertex(x, y, z);
+                    gt.hist_vertex_acc->Fill(z, sqrt(x*x + y*y));
+                    gt.hist_crea_mech->Fill(pKine->getMechanism());
 
                     TrackInfo & ti = trackInf[gt.track_id];
                     if (ti.is_fwdet_hit)
@@ -407,6 +419,22 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
                 h_hit_mult_hades_fwdet_req_acc -> Fill(cnt_h_req_acc, cnt_f_req_acc);
                 h_hit_mult_hades_fwdet_acc -> Fill(cnt_h_acc, cnt_f_acc);
+            }
+        }
+        else
+        {
+            for (auto & gt : goodTracks)
+            {
+                if (gt.track_id >= 0)
+                {
+                    HGeantKine * pKine = (HGeantKine *)fCatGeantKine -> getObject(gt.track_id);
+                    if (!pKine)
+                        continue;
+
+                    Float_t x, y, z;
+                    pKine->getVertex(x, y, z);
+                    gt.hist_vertex_nacc->Fill(z, sqrt(x*x + y*y));
+                }
             }
         }
 
@@ -632,6 +660,22 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         c->cd();
         x.hist_p_theta_acc->Draw("colz");
         c->Write();
+
+        x.can_vertex_acc->cd();
+        x.hist_vertex_acc->Draw("colz");
+        x.can_vertex_acc->Write();
+        x.hist_vertex_acc->Write();
+
+        x.can_vertex_nacc->cd();
+        x.hist_vertex_nacc->Draw("colz");
+        x.can_vertex_nacc->Write();
+        x.hist_vertex_nacc->Write();
+
+        x.can_crea_mech->cd();
+        x.hist_crea_mech->SetMarkerSize(2);
+        x.hist_crea_mech->Draw("h,text30");
+        x.can_crea_mech->Write();
+        x.hist_crea_mech->Write();
     }
     h_gt_mult_acc->SetMarkerSize(2);
     h_gt_mult_acc->Write();
@@ -648,13 +692,18 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     return 0;
 }
 
-Bool_t is_good_event(const GTVector& gtv)
+Bool_t is_good_event(const GTVector& gtv, const TIVector& ti, int decay_only)
 {
     for (auto & x : gtv)
     {
         if (x.required)
+        {
             if (!x.found)
                 return kFALSE;
+
+            if (decay_only and (ti[x.track_id].parent_pid != -1) and (ti[x.track_id].mechanism != 5))
+                return kFALSE;
+        }
     }
     return kTRUE;
 }
