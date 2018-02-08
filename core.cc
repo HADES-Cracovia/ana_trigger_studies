@@ -12,7 +12,8 @@
 #include "TLegend.h"
 #include "TLatex.h"
 
-#include "fstream"#include "iostream"
+#include "fstream"
+#include "iostream"
 
 #define PR(x) std::cout << "++DEBUG: " << #x << " = |" << x << "| (" << __FILE__ << ", " << __LINE__ << ")\n";
 
@@ -194,6 +195,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         n_nreq = 0;
 
         std::vector<TrackInfo> trackInf;
+        trackInf.reserve(10000);
 
         for (int j = 0; j < gtnum; ++j)
             goodTracks[j].reset();
@@ -208,7 +210,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                 continue;
 
             TrackInfo ti;
-            ti.track_id = j;
+            ti.track_id = pKine->getTrack()-1;
             ti.parent_track_id = pKine -> getParentTrack()-1;
             ti.pid = pKine -> getID();
             ti.parent_pid = ti.parent_track_id != -1 ? trackInf[ti.parent_track_id].pid : -1;
@@ -236,7 +238,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                         if (t1.parent_pid == -1)
                         {
                             _gt.found = true;
-                            _gt.track_id = j;
+                            _gt.track_id = pKine->getTrack()-1;
                             break;
                         }
                         else
@@ -269,6 +271,9 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 //                        gt.found ? (gt.req ? '#' : '*' ) : ' ',
 //                        pKine->getID(), pKine->getParentTrack()-1);
 
+//             if (anapars.verbose_flag)
+//                 printf("  [%03d/%0d] pid=%2d parent=%d  found=%d\n", ti.track_id, tracks_num, pKine->getID(), pKine->getParentTrack()-1, gt.found);
+
             // if not good track, push it to the vector and continue
             if (!gt.found)
             {
@@ -278,7 +283,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
             // check if track in aceptance
             Int_t m0 = 0, m1 = 0, m2 = 0, m3 = 0, s0 = 0, s1 = 0, str = 0, rpc = 0;
-	    pKine->getNHitsDecayBit(m0, m1, m2, m3, s0, s1);
+            pKine->getNHitsDecayBit(m0, m1, m2, m3, s0, s1);
             pKine->getNHitsFWDecayBit(str, rpc);
 
             pKine->fillAcceptanceBit();
@@ -288,16 +293,17 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             // is hit in hades and fwdet
             //                |------------------- HADES --------------------|
             //                |- META -|     |------------- MDC -------------|
-	    if (anapars.nomdc_flag)
-		ti.is_hades_hit = (s0 or s1);
-	    else
-		ti.is_hades_hit = (s0 or s1) and (m0>0 and m1>0 and m2>0 and m3>0);
-	    if (anapars.nofdrpc_flag)
-		ti.is_fwdet_hit = is_good_fwdet_acc;
-	    else
-		ti.is_fwdet_hit = is_good_fwdet_acc and (nrpc > 0);
-	    
-	    ti.is_in_acc = ti.is_hades_hit or (ti.is_fwdet_hit);
+            if (anapars.nomdc_flag)
+                ti.is_hades_hit = (s0 or s1);
+            else
+                ti.is_hades_hit = (s0 or s1) and (m0>0 and m1>0 and m2>0 and m3>0);
+
+            if (anapars.nofdrpc_flag)
+                ti.is_fwdet_hit = is_good_fwdet_acc;
+            else
+                ti.is_fwdet_hit = is_good_fwdet_acc and (nrpc > 0);
+
+            ti.is_in_acc = ti.is_hades_hit or (ti.is_fwdet_hit);
             trackInf.push_back(ti);
 
             if (anapars.verbose_flag)
