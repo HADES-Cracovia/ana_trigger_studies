@@ -319,6 +319,13 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 //             if (is_good_fwdet_acc)
 //                 gt.hist_theta_fwd->Fill(pKine->getThetaDeg());
 
+            if (ti.is_in_acc)
+            {
+                gt.hist_theta_acc->Fill(theta);
+                gt.hist_p_acc->Fill(p);
+                gt.hist_p_theta_acc->Fill(p, theta);
+            }
+
             Int_t pid = pKine -> getID();
 
             pKine->getNHitsDecayBit(m0, m1, m2, m3, s0, s1);
@@ -370,7 +377,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                     Float_t p = pKine->getTotalMomentum();
 
                     TrackInfo & ti = trackInf[gt.track_id];
-		    if (ti.is_fwdet_hit)
+                    if (ti.is_fwdet_hit)
                     {
                         gt.hist_theta_fwd->Fill(theta);
                         gt.hist_p_fwd->Fill(p);
@@ -379,7 +386,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                         ++cnt_f_acc;
                         if (gt.required) ++cnt_f_req_acc;
                     }
-		    else if (ti.is_hades_hit)
+                    else if (ti.is_hades_hit)
                     {
                         gt.hist_theta_had->Fill(theta);
                         gt.hist_p_had->Fill(p);
@@ -389,9 +396,9 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                         if (gt.required) ++cnt_h_req_acc;
                     }
                    
-                    gt.hist_theta_acc->Fill(theta);
-                    gt.hist_p_acc->Fill(p);
-                    gt.hist_p_theta_acc->Fill(p, theta);
+                    gt.hist_theta_tacc->Fill(theta);
+                    gt.hist_p_tacc->Fill(p);
+                    gt.hist_p_theta_tacc->Fill(p, theta);
 
                     if (ti.is_in_acc)
                         ++cnt;
@@ -524,16 +531,24 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         // theta
         x.hist_theta_all->SetLineColor(kBlack);
         x.hist_theta_all->Write();
-        x.hist_theta_acc->SetLineWidth(0);
-        x.hist_theta_acc->SetLineColor(0);
-        if (x.required)
-            x.hist_theta_acc->SetFillColor(46);
-        else
-            x.hist_theta_acc->SetFillColor(41);
+
+        x.hist_theta_acc->SetLineWidth(1);
+        x.hist_theta_acc->SetLineColor(28);
+        x.hist_theta_acc->SetFillColor(25);
         x.hist_theta_acc->Write();
+
+        x.hist_theta_tacc->SetLineWidth(0);
+        x.hist_theta_tacc->SetLineColor(0);
+        if (x.required)
+            x.hist_theta_tacc->SetFillColor(46);
+        else
+            x.hist_theta_tacc->SetFillColor(41);
+        x.hist_theta_tacc->Write();
+
         x.hist_theta_had->SetLineColor(30);
         x.hist_theta_had->SetLineWidth(2);
         x.hist_theta_had->Write();
+
         x.hist_theta_fwd->SetLineColor(38);
         x.hist_theta_fwd->SetLineWidth(2);
         x.hist_theta_fwd->Write();
@@ -541,36 +556,49 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         c->cd();
         x.hist_theta_all->Draw();
         x.hist_theta_acc->Draw("same");
+        x.hist_theta_tacc->Draw("same");
         x.hist_theta_fwd->Draw("same");
         x.hist_theta_had->Draw("same");
+        Int_t max_theta = x.hist_theta_all->GetMaximum();
+        x.hist_theta_all->GetYaxis()->SetRangeUser(0.2, max_theta * 2);
 
-        TLegend * leg = new TLegend(0.6, 0.8, 0.9, 0.9);
+        TLegend * leg = new TLegend(0.6, 0.7, 0.9, 0.9);
         leg->AddEntry(x.hist_theta_all, "Good tracks", "lp");
-        leg->AddEntry(x.hist_theta_had, "required in acceptance in hades", "lp");
-        leg->AddEntry(x.hist_theta_fwd, "required in acceptance in fwd", "lp");
-        leg->AddEntry(x.hist_theta_acc, "required in acceptance", "lp");
+        leg->AddEntry(x.hist_theta_acc, "Required in the detector acceptance", "lpf");
+        leg->AddEntry(x.hist_theta_had, "Required in acceptance in hades", "lpf");
+        leg->AddEntry(x.hist_theta_fwd, "Required in acceptance in fwd", "lpf");
+        leg->AddEntry(x.hist_theta_tacc, "Required in the trigger acceptance", "lpf");
         leg->Draw();
-        tex->DrawLatex(0.6, 0.70, TString::Format("# all = %.0f", x.hist_theta_all->Integral()));
-        tex->DrawLatex(0.6, 0.65, TString::Format("# acc = %.0f", x.hist_theta_acc->Integral()));
+        tex->DrawLatex(0.6, 0.60, TString::Format("# all = %.0f", x.hist_theta_all->Integral()));
+        tex->DrawLatex(0.6, 0.55, TString::Format("# dacc = %.0f", x.hist_theta_acc->Integral()));
+        tex->DrawLatex(0.6, 0.50, TString::Format("# tacc = %.0f", x.hist_theta_tacc->Integral()));
         
-        tex->DrawLatex(0.6, 0.55, TString::Format("# fwd = %.0f", x.hist_theta_fwd->Integral()));
-        tex->DrawLatex(0.6, 0.50, TString::Format("# had = %.0f", x.hist_theta_had->Integral()));
+        tex->DrawLatex(0.6, 0.40, TString::Format("# fwd = %.0f", x.hist_theta_fwd->Integral()));
+        tex->DrawLatex(0.6, 0.35, TString::Format("# had = %.0f", x.hist_theta_had->Integral()));
         c->SetLogy();
         c->Write();
 
         // p
         x.hist_p_all->SetLineColor(kBlack);
         x.hist_p_all->Write();
-        x.hist_p_acc->SetLineWidth(0);
-        x.hist_p_acc->SetLineColor(0);
-        if (x.required)
-            x.hist_p_acc->SetFillColor(46);
-        else
-            x.hist_p_acc->SetFillColor(41);
+
+        x.hist_p_acc->SetLineWidth(1);
+        x.hist_p_acc->SetLineColor(28);
+        x.hist_p_acc->SetFillColor(25);
         x.hist_p_acc->Write();
+
+        x.hist_p_tacc->SetLineWidth(0);
+        x.hist_p_tacc->SetLineColor(0);
+        if (x.required)
+            x.hist_p_tacc->SetFillColor(46);
+        else
+            x.hist_p_tacc->SetFillColor(41);
+        x.hist_p_tacc->Write();
+
         x.hist_p_had->SetLineColor(30);
         x.hist_p_had->SetLineWidth(2);
         x.hist_p_had->Write();
+
         x.hist_p_fwd->SetLineColor(38);
         x.hist_p_fwd->SetLineWidth(2);
         x.hist_p_fwd->Write();
@@ -578,21 +606,26 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         c->cd();
         x.hist_p_all->Draw();
         x.hist_p_acc->Draw("same");
+        x.hist_p_tacc->Draw("same");
         x.hist_p_fwd->Draw("same");
         x.hist_p_had->Draw("same");
+        Int_t max_p = x.hist_p_all->GetMaximum();
+        x.hist_p_all->GetYaxis()->SetRangeUser(0.2, max_p * 2);
 
         leg->Draw();
         tex->DrawLatex(0.6, 0.70, TString::Format("# all = %.0f", x.hist_p_all->Integral()));
-        tex->DrawLatex(0.6, 0.65, TString::Format("# acc = %.0f", x.hist_p_acc->Integral()));
+        tex->DrawLatex(0.6, 0.65, TString::Format("# dacc = %.0f", x.hist_p_acc->Integral()));
+        tex->DrawLatex(0.6, 0.60, TString::Format("# tacc = %.0f", x.hist_p_tacc->Integral()));
         
-        tex->DrawLatex(0.6, 0.55, TString::Format("# fwd = %.0f", x.hist_p_fwd->Integral()));
-        tex->DrawLatex(0.6, 0.50, TString::Format("# had = %.0f", x.hist_p_had->Integral()));
+        tex->DrawLatex(0.6, 0.50, TString::Format("# fwd = %.0f", x.hist_p_fwd->Integral()));
+        tex->DrawLatex(0.6, 0.45, TString::Format("# had = %.0f", x.hist_p_had->Integral()));
         c->SetLogy();
         c->Write();
 
         // p-theta
         x.hist_p_theta_all->Write();
         x.hist_p_theta_acc->Write();
+        x.hist_p_theta_tacc->Write();
         x.hist_p_theta_had->Write();
         x.hist_p_theta_fwd->Write();
         c = x.can_p_theta;

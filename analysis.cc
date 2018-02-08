@@ -40,9 +40,9 @@ int main(int argc, char **argv)
             {"brief",     no_argument,       &verbose_flag, 0},
             {"sim",       no_argument,       &flag_sim, 1},
             {"exp",       no_argument,       &flag_sim, 0},
-	    {"nomdc",     no_argument,       &nomdc_flag, 1},
+            {"nomdc",     no_argument,       &nomdc_flag, 1},
             {"mdc",       no_argument,       &nomdc_flag, 0},
-	    {"nofdrpc",   no_argument,       &nofdrpc_flag, 1},
+            {"nofdrpc",   no_argument,       &nofdrpc_flag, 1},
             {"fdrpc",     no_argument,       &nofdrpc_flag, 0},
             /* These options don’t set a flag.
              *              We distinguish them by their indices. */

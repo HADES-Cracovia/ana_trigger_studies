@@ -77,20 +77,26 @@ struct GoodTrack
 
     SPVector search_path;   // decay chain  | fixed
     string search_str;      // decay chain  | fixed
+    // theta
     TH1 * hist_theta_all = NULL;    // hist | accumulated
     TH1 * hist_theta_had = NULL;    // hist | accumulated
     TH1 * hist_theta_fwd = NULL;    // hist | accumulated
-    TH1 * hist_theta_acc = NULL;    // host | accumulated
+    TH1 * hist_theta_acc = NULL;    // hist | accumulated
+    TH1 * hist_theta_tacc = NULL;   // hist | accumulated
 
+    // p
     TH1 * hist_p_all = NULL;    // hist | accumulated
     TH1 * hist_p_had = NULL;    // hist | accumulated
     TH1 * hist_p_fwd = NULL;    // hist | accumulated
-    TH1 * hist_p_acc = NULL;    // host | accumulated
+    TH1 * hist_p_acc = NULL;    // hist | accumulated
+    TH1 * hist_p_tacc = NULL;   // hist | accumulated
 
+    // p-theta
     TH2 * hist_p_theta_all = NULL;    // hist | accumulated
     TH2 * hist_p_theta_had = NULL;    // hist | accumulated
     TH2 * hist_p_theta_fwd = NULL;    // hist | accumulated
-    TH2 * hist_p_theta_acc = NULL;    // host | accumulated
+    TH2 * hist_p_theta_acc = NULL;    // hist | accumulated
+    TH2 * hist_p_theta_tacc = NULL;   // hist | accumulated
 
     TCanvas * can_theta = NULL;   // canvas       | accumulated
     TCanvas * can_p = NULL;   // canvas       | accumulated
@@ -137,18 +143,21 @@ struct GoodTrack
         hist_theta_had = new TH1I((ss_theta.str() + "_had").c_str(), ";Theta / deg;counts", 90, 0, 90);
         hist_theta_fwd = new TH1I((ss_theta.str() + "_fwd").c_str(), ";Theta / deg;counts", 90, 0, 90);
         hist_theta_acc = new TH1I((ss_theta.str() + "_acc").c_str(), ";Theta / deg;counts", 90, 0, 90);
+        hist_theta_tacc = new TH1I((ss_theta.str() + "_tacc").c_str(), ";Theta / deg;counts", 90, 0, 90);
         can_theta = new TCanvas(ss_theta_can.str().c_str(), ss_theta_can.str().c_str(), 800, 600);
 
         hist_p_all = new TH1I(ss_p.str().c_str(), ";p / MeV;counts", 300, 0, 3000);
         hist_p_had = new TH1I((ss_p.str() + "_had").c_str(), ";p / MeV;counts", 300, 0, 3000);
         hist_p_fwd = new TH1I((ss_p.str() + "_fwd").c_str(), ";p / MeV;counts", 300, 0, 3000);
         hist_p_acc = new TH1I((ss_p.str() + "_acc").c_str(), ";p / MeV;counts", 300, 0, 3000);
+        hist_p_tacc = new TH1I((ss_p.str() + "_tacc").c_str(), ";p / MeV;counts", 300, 0, 3000);
         can_p = new TCanvas(ss_p_can.str().c_str(), ss_p_can.str().c_str(), 800, 600);
 
         hist_p_theta_all = new TH2I(ss_p_theta.str().c_str(), ";p / MeV;Theta / deg", 300, 0, 3000, 90, 0, 90);
         hist_p_theta_had = new TH2I((ss_p_theta.str() + "_had").c_str(), ";p / MeV;Theta / deg", 300, 0, 3000, 90, 0, 90);
         hist_p_theta_fwd = new TH2I((ss_p_theta.str() + "_fwd").c_str(), ";p / MeV;Theta / deg", 300, 0, 3000, 90, 0, 90);
         hist_p_theta_acc = new TH2I((ss_p_theta.str() + "_acc").c_str(), ";p / MeV;Theta / deg", 300, 0, 3000, 90, 0, 90);
+        hist_p_theta_tacc = new TH2I((ss_p_theta.str() + "_tacc").c_str(), ";p / MeV;Theta / deg", 300, 0, 3000, 90, 0, 90);
         can_p_theta = new TCanvas(ss_p_theta_can.str().c_str(), ss_p_theta_can.str().c_str(), 800, 600);
     }
 };
