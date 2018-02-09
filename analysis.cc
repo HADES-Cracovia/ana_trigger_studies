@@ -20,47 +20,41 @@ int main(int argc, char **argv)
     // argc has to be nargs+1
 
     /* Flag set by ‘--verbose’. */
-    static int verbose_flag = 0;
-    static int flag_sim = 0;
-    static int nomdc_flag = 0;
-    static int nofdrpc_flag = 0;
+    AnaParameters anapars;
+    anapars.verbose_flag = 0;
+    anapars.nomdc_flag = 0;
+    anapars.nosys_flag = 0;
+    anapars.norpc_flag = 0;
+    anapars.decay_only_flag = 0;
+
+    anapars.events = -1;
+
+    anapars.config = "";
+    anapars.outfile = "output.root";
 
     int c;
-    long int events = -1;
-    TString config = "";
-    TString output = "output.root";
-    float beam_momentum = 690.;
-
     while (1)
     {
         static struct option long_options[] =
         {
             /* These options set a flag. */
-            {"verbose",   no_argument,       &verbose_flag, 1},
-            {"brief",     no_argument,       &verbose_flag, 0},
-            {"sim",       no_argument,       &flag_sim, 1},
-            {"exp",       no_argument,       &flag_sim, 0},
-	    {"nomdc",     no_argument,       &nomdc_flag, 1},
-            {"mdc",       no_argument,       &nomdc_flag, 0},
-	    {"nofdrpc",   no_argument,       &nofdrpc_flag, 1},
-            {"fdrpc",     no_argument,       &nofdrpc_flag, 0},
+            {"verbose",   no_argument,       &(anapars.verbose_flag), 1},
+            {"brief",     no_argument,       &(anapars.verbose_flag), 0},
+            {"nomdc",     no_argument,       &(anapars.nomdc_flag), 1},
+            {"nosys",     no_argument,       &(anapars.nosys_flag), 1},
+            {"norpc",     no_argument,       &(anapars.norpc_flag), 1},
+            {"decay",     no_argument,       &(anapars.decay_only_flag), 1},
             /* These options don’t set a flag.
              *              We distinguish them by their indices. */
-//            {"add",     no_argument,       0, 'a'},
-//            {"append",  no_argument,       0, 'b'},
-//            {"delete",  required_argument, 0, 'd'},
-//            {"create",  required_argument, 0, 'c'},
-//            {"file",    required_argument, 0, 'f'},
             {"config",    required_argument, 0, 'c'},
-            {"output",    required_argument, 0, 'o'},
             {"events",    required_argument, 0, 'e'},
-            {"mom",       required_argument, 0, 'm'},
+            {"output",    required_argument, 0, 'o'},
             {0, 0, 0, 0}
         };
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "abc:d:f:e:o:",
+        c = getopt_long (argc, argv, "c:e:o:",
                 long_options, &option_index);
 
         /* Detect the end of the options. */
@@ -79,36 +73,16 @@ int main(int argc, char **argv)
                 printf ("\n");
                 break;
 
-            case 'a':
-                puts ("option -a\n");
-                break;
-
-            case 'b':
-                puts ("option -b\n");
-                break;
-
             case 'c':
-	        config = optarg;
-                break;
-
-            case 'd':
-                printf ("option -d with value `%s'\n", optarg);
-                break;
-
-            case 'f':
-                printf ("option -f with value `%s'\n", optarg);
+                anapars.config = optarg;
                 break;
 
             case 'e':
-                events = atol(optarg);
+                anapars.events = atol(optarg);
                 break;
 
             case 'o':
-                output = optarg;
-                break;
-
-            case 'm':
-                beam_momentum = atof(optarg);
+                anapars.outfile = optarg;
                 break;
 
             case '?':
@@ -123,7 +97,7 @@ int main(int argc, char **argv)
     /* Instead of reporting ‘--verbose’
      *      and ‘--brief’ as they are encountered,
      *           we report the final status resulting from them. */
-    if (verbose_flag)
+    if (anapars.verbose_flag)
         puts ("verbose flag is set");
 
     HLoop * loop = new HLoop(kTRUE);
@@ -146,20 +120,6 @@ int main(int argc, char **argv)
             }
         }
     }
-
-    AnaParameters anapars;
-    anapars.verbose_flag = verbose_flag;
-    anapars.nomdc_flag = nomdc_flag;
-    anapars.nofdrpc_flag = nofdrpc_flag;
-    anapars.config = config;
-    anapars.outfile = output;
-    anapars.events = events;
-    anapars.beam_momentum = beam_momentum;
-
-    if (flag_sim==1) {
-            anapars.sim = true;}
-    if (flag_sim==0){
-            anapars.sim = false;}
 
     core(loop, anapars);
 
