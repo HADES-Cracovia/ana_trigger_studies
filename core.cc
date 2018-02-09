@@ -293,14 +293,14 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             Bool_t is_good_fwdet_acc = pKine->isInTrackAcceptanceFWDecayBit(nrpc);
 
             // is hit in hades and fwdet
-            //                |------------------- HADES --------------------|
-            //                |- META -|     |------------- MDC -------------|
             if (anapars.nomdc_flag)
                 ti.is_hades_hit = (s0 or s1);
+            else if (anapars.nosys_flag)
+                ti.is_hades_hit = (m0>0 and m1>0 and m2>0 and m3>0);
             else
                 ti.is_hades_hit = (s0 or s1) and (m0>0 and m1>0 and m2>0 and m3>0);
 
-            if (anapars.nofdrpc_flag)
+            if (anapars.norpc_flag)
                 ti.is_fwdet_hit = is_good_fwdet_acc;
             else
                 ti.is_fwdet_hit = is_good_fwdet_acc and (nrpc > 0);

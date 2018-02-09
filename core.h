@@ -57,12 +57,11 @@ struct AnaParameters
 {
     int verbose_flag;
     int nomdc_flag;
-    int nofdrpc_flag;
+    int nosys_flag;
+    int norpc_flag;
     int decay_only_flag;
     TString outfile, config;
     int events;
-    float beam_momentum;
-    bool sim;
 };
 
 typedef std::vector<int> SPVector;
