@@ -288,7 +288,6 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             pKine->getNHitsDecayBit(m0, m1, m2, m3, s0, s1);
             pKine->getNHitsFWDecayBit(str, rpc);
 
-            pKine->fillAcceptanceBit();
             Int_t nrpc = 0;
             Bool_t is_good_fwdet_acc = pKine->isInTrackAcceptanceFWDecayBit(nrpc);
 
