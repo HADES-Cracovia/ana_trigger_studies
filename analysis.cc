@@ -43,6 +43,7 @@ int main(int argc, char **argv)
             {"nomdc",     no_argument,       &(anapars.nomdc_flag), 1},
             {"nosys",     no_argument,       &(anapars.nosys_flag), 1},
             {"norpc",     no_argument,       &(anapars.norpc_flag), 1},
+            {"nostraw",   no_argument,       &(anapars.nostraw_flag), 1},
             {"decay",     no_argument,       &(anapars.decay_only_flag), 1},
             /* These options don’t set a flag.
              *              We distinguish them by their indices. */
