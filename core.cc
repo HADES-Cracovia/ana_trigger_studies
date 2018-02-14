@@ -301,6 +301,8 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
             if (anapars.norpc_flag)
                 ti.is_fwdet_hit = is_good_fwdet_acc;
+            else if (anapars.nostraw_flag)
+                ti.is_fwdet_hit = (nrpc > 0);
             else
                 ti.is_fwdet_hit = is_good_fwdet_acc and (nrpc > 0);
 

@@ -59,6 +59,7 @@ struct AnaParameters
     int nomdc_flag;
     int nosys_flag;
     int norpc_flag;
+    int nostraw_flag;
     int decay_only_flag;
     TString outfile, config;
     int events;
