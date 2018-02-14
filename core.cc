@@ -148,9 +148,11 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
     TH2 * h_hit_mult_hades_fwdet_req_acc = new TH2I("h_hit_mult_hades_fwdet_req_acc", "Charged in Hades/FwDet mult_acc;Hades;FwDet", 8, 0, 8, 8, 0, 8);
     TH2 * h_hit_mult_hades_fwdet_acc = new TH2I("h_hit_mult_hades_fwdet_acc", "Charged in Hades/FwDet mult_acc;Hades;FwDet", 8, 0, 8, 8, 0, 8);
+    TH2 * h_hit_mult_hades_fwdet_all = new TH2I("h_hit_mult_hades_fwdet_all", "Charged in Hades/FwDet mult_acc;Hades;FwDet", 8, 0, 8, 8, 0, 8);
 
     TCanvas * c_hit_mult_hades_fwdet_req_acc = new TCanvas("c_hit_mult_hades_fwdet_req_acc", "Required tracks multiplicity in acceptance Hades/FwDet", 800, 600);
     TCanvas * c_hit_mult_hades_fwdet_acc = new TCanvas("c_hit_mult_hades_fwdet_acc", "Tracks multiplicity in acceptance Hades/FwDet", 800, 600);
+    TCanvas * c_hit_mult_hades_fwdet_all = new TCanvas("c_hit_mult_hades_fwdet_all", "Tracks multiplicity in acceptance Hades/FwDet of all charged", 800, 600);
 
     TH1 * h_gt_mult_acc = new TH1I("h_gt_mult_acc", ";Tracks multiplicity in acceptance;counts", 10, 0, 10);
     TCanvas * c_gt_mult_acc = new TCanvas("c_gt_mult_acc", "Tracks multiplicity in acceptance", 800, 600);
@@ -182,6 +184,9 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
         Int_t cnt_h_req_acc = 0;
         Int_t cnt_f_req_acc = 0;
+
+        Int_t cnt_h_all = 0;
+        Int_t cnt_f_all = 0;
 
         Int_t cnt_all = 0;
 
@@ -421,6 +426,27 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
                 h_hit_mult_hades_fwdet_req_acc -> Fill(cnt_h_req_acc, cnt_f_req_acc);
                 h_hit_mult_hades_fwdet_acc -> Fill(cnt_h_acc, cnt_f_acc);
             }
+
+            {
+                Int_t cnt = 0;
+                for (auto & gt : goodTracks)
+                {
+                    HGeantKine * pKine = (HGeantKine *)fCatGeantKine -> getObject(gt.track_id);
+                    if (!pKine)
+                        continue;
+
+                    TrackInfo & ti = trackInf[gt.track_id];
+                    if (ti.is_fwdet_hit)
+                    {
+                        ++cnt_f_all;
+                    }
+                    else if (ti.is_hades_hit)
+                    {
+                        ++cnt_h_all;
+                    }
+                }
+                h_hit_mult_hades_fwdet_all -> Fill(cnt_h_all, cnt_f_all);
+            }
         }
         else
         {
@@ -544,6 +570,10 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     h_hit_mult_hades_fwdet_acc->SetMarkerSize(2);
     h_hit_mult_hades_fwdet_acc->Write();
 
+    h_hit_mult_hades_fwdet_all->SetMarkerColor(kWhite);
+    h_hit_mult_hades_fwdet_all->SetMarkerSize(2);
+    h_hit_mult_hades_fwdet_all->Write();
+
     c_hit_mult_hades_fwdet_req_acc->cd();
     h_hit_mult_hades_fwdet_req_acc->Draw("colz,text30");
     c_hit_mult_hades_fwdet_req_acc->Write();
@@ -551,6 +581,10 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     c_hit_mult_hades_fwdet_acc->cd();
     h_hit_mult_hades_fwdet_acc->Draw("colz,text30");
     c_hit_mult_hades_fwdet_acc->Write();
+
+    c_hit_mult_hades_fwdet_all->cd();
+    h_hit_mult_hades_fwdet_all->Draw("colz,text30");
+    c_hit_mult_hades_fwdet_all->Write();
 
     TLatex * tex = new TLatex;
     tex->SetNDC(kTRUE);
