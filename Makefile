@@ -1,7 +1,7 @@
 APP_NAME      := trigger_studies
 SOURCE_FILES  := analysis.cc core.cc 
 #INSTALL_DIR   := ..
-
+CPP_FLAGS += -std=c++11
 USES_RFIO     := no
 USES_ORACLE   := no
 USES_GFORTRAN := yes
@@ -14,5 +14,7 @@ INC_DIRS += ${HOME}/usr/include
 .PHONY:  default
 #default: clean build install
 default: build install
+
+CPP_FLAGS += -std=c++11
 
 include $(HADDIR)/hades.app.mk
