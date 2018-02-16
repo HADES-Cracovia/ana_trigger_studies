@@ -19,6 +19,23 @@
 
 using namespace std;
 
+void nice_canv1(TVirtualPad * c)
+{
+    c->SetBottomMargin(0.15);
+    c->SetLeftMargin(0.12);
+}
+
+void nice_hist1(TH1 * h)
+{
+    h->GetXaxis()->SetLabelSize(0.07);
+    h->GetXaxis()->SetTitleSize(0.07);
+    h->GetXaxis()->SetTitleOffset(0.95);
+
+    h->GetYaxis()->SetTitleSize(0.07);
+    h->GetYaxis()->SetLabelSize(0.07);
+    h->GetYaxis()->SetTitleOffset(0.80);
+}
+
 Int_t core(HLoop * loop, const AnaParameters & anapars)
 {
     if (!loop->setInput(""))
@@ -146,9 +163,9 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     TH1 * h_hit_mult_fwdet_Km_acc = new TH1I("h_hit_mult_fwdet_Km_acc", "K-minus in FT mult_acc;multiplicity", 10, 0, 10);
     TH1 * h_hit_mult_fwdet_acc = new TH1I("h_hit_mult_fwdet_acc", "Charged in FT mult_acc;multiplicity", 10, 0, 10);
 
-    TH2 * h_hit_mult_hades_fwdet_req_acc = new TH2I("h_hit_mult_hades_fwdet_req_acc", "Charged in Hades/FwDet mult_acc;Hades;FwDet", 8, 0, 8, 8, 0, 8);
-    TH2 * h_hit_mult_hades_fwdet_acc = new TH2I("h_hit_mult_hades_fwdet_acc", "Charged in Hades/FwDet mult_acc;Hades;FwDet", 8, 0, 8, 8, 0, 8);
-    TH2 * h_hit_mult_hades_fwdet_all = new TH2I("h_hit_mult_hades_fwdet_all", "Charged in Hades/FwDet mult_acc;Hades;FwDet", 8, 0, 8, 8, 0, 8);
+    TH2 * h_hit_mult_hades_fwdet_req_acc = new TH2I("h_hit_mult_hades_fwdet_req_acc", "Multiplicity of charged in Hades/FwDet (required in acc);Counts in Hades;Counts in FwDet", 8, 0, 8, 8, 0, 8);
+    TH2 * h_hit_mult_hades_fwdet_acc = new TH2I("h_hit_mult_hades_fwdet_acc", "Multiplicity of charged in Hades/FwDet (all, requested in acc);Counts in Hades;Counts in FwDet", 8, 0, 8, 8, 0, 8);
+    TH2 * h_hit_mult_hades_fwdet_all = new TH2I("h_hit_mult_hades_fwdet_all", "Multiplicity of charged in Hades/FwDet (all);Counts in Hades;Counts in FwDet", 8, 0, 8, 8, 0, 8);
 
     TCanvas * c_hit_mult_hades_fwdet_req_acc = new TCanvas("c_hit_mult_hades_fwdet_req_acc", "Required tracks multiplicity in acceptance Hades/FwDet", 800, 600);
     TCanvas * c_hit_mult_hades_fwdet_acc = new TCanvas("c_hit_mult_hades_fwdet_acc", "Tracks multiplicity in acceptance Hades/FwDet", 800, 600);
@@ -159,7 +176,8 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
     const int gtnum = goodTracks.size();
 
-    for (Int_t i = 0; i < entries; ++i)                    // event loop
+    long int i = 0;
+    for (i = 0; i < entries; ++i)                    // event loop
     {
         /*Int_t nbytes =*/  loop -> nextEvent(i);         // get next event. categories will be cleared before
         //cout << fCatGeantFwDet->getEntries() << endl;
@@ -562,6 +580,10 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     h_hit_mult_fwdet_Km_acc -> Write();
     h_hit_mult_fwdet_acc -> Write();*/
 
+    nice_hist1(h_hit_mult_hades_fwdet_req_acc);
+    nice_hist1(h_hit_mult_hades_fwdet_acc);
+    nice_hist1(h_hit_mult_hades_fwdet_all);
+
     h_hit_mult_hades_fwdet_req_acc->SetMarkerColor(kWhite);
     h_hit_mult_hades_fwdet_req_acc->SetMarkerSize(2);
     h_hit_mult_hades_fwdet_req_acc->Write();
@@ -575,14 +597,17 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     h_hit_mult_hades_fwdet_all->Write();
 
     c_hit_mult_hades_fwdet_req_acc->cd();
+    nice_canv1(gPad);
     h_hit_mult_hades_fwdet_req_acc->Draw("colz,text30");
     c_hit_mult_hades_fwdet_req_acc->Write();
 
     c_hit_mult_hades_fwdet_acc->cd();
+    nice_canv1(gPad);
     h_hit_mult_hades_fwdet_acc->Draw("colz,text30");
     c_hit_mult_hades_fwdet_acc->Write();
 
     c_hit_mult_hades_fwdet_all->cd();
+    nice_canv1(gPad);
     h_hit_mult_hades_fwdet_all->Draw("colz,text30");
     c_hit_mult_hades_fwdet_all->Write();
 
@@ -592,14 +617,17 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
     for (auto & x : goodTracks)
     {
         // theta
+        nice_hist1(x.hist_theta_all);
         x.hist_theta_all->SetLineColor(kBlack);
         x.hist_theta_all->Write();
 
+        nice_hist1(x.hist_theta_acc);
         x.hist_theta_acc->SetLineWidth(1);
         x.hist_theta_acc->SetLineColor(28);
         x.hist_theta_acc->SetFillColor(25);
         x.hist_theta_acc->Write();
 
+        nice_hist1(x.hist_theta_tacc);
         x.hist_theta_tacc->SetLineWidth(0);
         x.hist_theta_tacc->SetLineColor(0);
         if (x.required)
@@ -608,10 +636,12 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             x.hist_theta_tacc->SetFillColor(41);
         x.hist_theta_tacc->Write();
 
+        nice_hist1(x.hist_theta_had);
         x.hist_theta_had->SetLineColor(30);
         x.hist_theta_had->SetLineWidth(2);
         x.hist_theta_had->Write();
 
+        nice_hist1(x.hist_theta_fwd);
         x.hist_theta_fwd->SetLineColor(38);
         x.hist_theta_fwd->SetLineWidth(2);
         x.hist_theta_fwd->Write();
@@ -624,6 +654,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         x.hist_theta_had->Draw("same");
         Int_t max_theta = x.hist_theta_all->GetMaximum();
         x.hist_theta_all->GetYaxis()->SetRangeUser(0.2, max_theta * 2);
+        nice_canv1(c);
 
         TLegend * leg = new TLegend(0.6, 0.7, 0.9, 0.9);
         leg->AddEntry(x.hist_theta_all, "Good tracks", "lp");
@@ -642,14 +673,17 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         c->Write();
 
         // p
+        nice_hist1(x.hist_p_all);
         x.hist_p_all->SetLineColor(kBlack);
         x.hist_p_all->Write();
 
+        nice_hist1(x.hist_p_acc);
         x.hist_p_acc->SetLineWidth(1);
         x.hist_p_acc->SetLineColor(28);
         x.hist_p_acc->SetFillColor(25);
         x.hist_p_acc->Write();
 
+        nice_hist1(x.hist_p_tacc);
         x.hist_p_tacc->SetLineWidth(0);
         x.hist_p_tacc->SetLineColor(0);
         if (x.required)
@@ -658,10 +692,12 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
             x.hist_p_tacc->SetFillColor(41);
         x.hist_p_tacc->Write();
 
+        nice_hist1(x.hist_p_had);
         x.hist_p_had->SetLineColor(30);
         x.hist_p_had->SetLineWidth(2);
         x.hist_p_had->Write();
 
+        nice_hist1(x.hist_p_fwd);
         x.hist_p_fwd->SetLineColor(38);
         x.hist_p_fwd->SetLineWidth(2);
         x.hist_p_fwd->Write();
@@ -674,6 +710,7 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         x.hist_p_had->Draw("same");
         Int_t max_p = x.hist_p_all->GetMaximum();
         x.hist_p_all->GetYaxis()->SetRangeUser(0.2, max_p * 2);
+        nice_canv1(c);
 
         leg->Draw();
         tex->DrawLatex(0.6, 0.70, TString::Format("# all = %.0f", x.hist_p_all->Integral()));
@@ -686,6 +723,11 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         c->Write();
 
         // p-theta
+        nice_hist1(x.hist_p_theta_all);
+        nice_hist1(x.hist_p_theta_acc);
+        nice_hist1(x.hist_p_theta_tacc);
+        nice_hist1(x.hist_p_theta_had);
+        nice_hist1(x.hist_p_theta_fwd);
         x.hist_p_theta_all->Write();
         x.hist_p_theta_acc->Write();
         x.hist_p_theta_tacc->Write();
@@ -694,24 +736,35 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
         c = x.can_p_theta;
         c->cd();
         x.hist_p_theta_acc->Draw("colz");
+        nice_canv1(c);
         c->Write();
 
+        nice_hist1(x.hist_vertex_acc);
+        x.hist_vertex_acc->GetXaxis()->SetNdivisions(505);
+        nice_canv1(x.can_vertex_acc);
         x.can_vertex_acc->cd();
         x.hist_vertex_acc->Draw("colz");
         x.can_vertex_acc->Write();
         x.hist_vertex_acc->Write();
 
+        nice_hist1(x.hist_vertex_nacc);
+        x.hist_vertex_nacc->GetXaxis()->SetNdivisions(505);
+        nice_canv1(x.can_vertex_nacc);
         x.can_vertex_nacc->cd();
         x.hist_vertex_nacc->Draw("colz");
         x.can_vertex_nacc->Write();
         x.hist_vertex_nacc->Write();
 
+        nice_hist1(x.hist_crea_mech);
+        nice_canv1(x.can_crea_mech);
         x.can_crea_mech->cd();
         x.hist_crea_mech->SetMarkerSize(2);
         x.hist_crea_mech->Draw("h,text30");
         x.can_crea_mech->Write();
         x.hist_crea_mech->Write();
     }
+    nice_hist1(h_gt_mult_acc);
+    nice_canv1(c_gt_mult_acc);
     h_gt_mult_acc->SetMarkerSize(2);
     h_gt_mult_acc->Write();
     c_gt_mult_acc->cd();
@@ -723,6 +776,8 @@ Int_t core(HLoop * loop, const AnaParameters & anapars)
 
     timer.Stop();
     timer.Print();
+
+    printf("%lu events analyzed, good luck with it!\n", i);
 
     return 0;
 }
